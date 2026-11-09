@@ -1,0 +1,30 @@
+# Secrets and data
+.env
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Django
+staticfiles/
+media/
+
+# Editors / tools (shared config stays tracked)
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.claude/settings.local.json
+.DS_Store
