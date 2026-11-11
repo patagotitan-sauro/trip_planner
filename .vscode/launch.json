@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Django: runserver (port 8001)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["runserver", "0.0.0.0:8001", "--noreload"],
+      "django": true,
+      "justMyCode": true
+    },
+    {
+      "name": "Pytest: current file",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}"]
+    }
+  ]
+}
