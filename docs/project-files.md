@@ -58,6 +58,7 @@ The `__init__.py` files only mark these folders as Python packages.
 | `pytest.ini` | Tells pytest where the tests are and which Django settings to use. |
 | `scripts/check_money_floats.py` | Fails when `float` is used for money in `apps/` and `servicos/` (the Decimal rule). |
 | `.pre-commit-config.yaml` | Runs ruff and the float check on staged files before each commit, inside the container. Install once per clone with `pre-commit install`. |
+| `.github/workflows/ci.yml` | GitHub Actions: builds the dev image and runs `make check` on every push to `main` and on pull requests. |
 
 ## Instructions for AI assistants
 

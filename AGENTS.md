@@ -12,9 +12,9 @@ A web app to plan trips (destinations, day-by-day itinerary, estimated costs and
 
 ## 2. Current state (update as the repo grows)
 
-Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests).
+Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests), `.github/workflows/ci.yml` (runs `make check` on push and pull request).
 
-Not created yet: CI, skills, any Django app, tests for business rules. Do not assume they exist or run commands that depend on them.
+Not created yet: skills, any Django app, tests for business rules. Do not assume they exist or run commands that depend on them.
 
 ## 3. Communication style
 
