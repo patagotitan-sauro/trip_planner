@@ -1,0 +1,18 @@
+target-version = "py312"
+line-length = 100
+extend-exclude = ["**/migrations/*.py"]
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes: unused imports and names
+    "I",    # import order
+    "B",    # likely bugs
+    "UP",   # modern Python syntax
+    "DJ",   # Django conventions
+    "S",    # security checks
+    "DTZ",  # naive datetimes
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101"]  # pytest uses plain assert
