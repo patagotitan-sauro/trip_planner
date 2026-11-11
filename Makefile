@@ -2,7 +2,7 @@
 COMPOSE ?= docker compose
 EXEC := $(COMPOSE) exec app
 
-.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up
+.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up lint test check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -39,3 +39,16 @@ superuser: ## Create an admin user
 
 prod-up: ## Production-like run, without the dev override
 	$(COMPOSE) -f compose.yaml up -d --build
+
+lint: ## Check style, security rules and float-for-money (changes nothing)
+	$(EXEC) ruff check .
+	$(EXEC) ruff format --check .
+	$(EXEC) python scripts/check_money_floats.py
+
+test: ## Run the tests
+	$(EXEC) pytest
+
+check: lint ## Lint, Django checks and tests
+	$(EXEC) python manage.py check
+	$(EXEC) python manage.py makemigrations --check --dry-run
+	$(MAKE) test
