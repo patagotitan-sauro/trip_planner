@@ -2,7 +2,7 @@
 COMPOSE ?= docker compose
 EXEC := $(COMPOSE) exec app
 
-.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up lint test check
+.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up lint test check sync-agents
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -52,3 +52,6 @@ check: lint ## Lint, Django checks and tests
 	$(EXEC) python manage.py check
 	$(EXEC) python manage.py makemigrations --check --dry-run
 	$(MAKE) test
+
+sync-agents: ## Regenerate .claude/ and .github/ skills and agents from .agents/
+	$(EXEC) python scripts/sync_agents.py
