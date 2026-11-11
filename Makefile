@@ -1,4 +1,4 @@
-m.DEFAULT_GOAL := help
+.DEFAULT_GOAL := help
 COMPOSE ?= docker compose
 EXEC := $(COMPOSE) exec app
 
