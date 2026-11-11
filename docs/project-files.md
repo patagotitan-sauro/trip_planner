@@ -67,3 +67,14 @@ The `__init__.py` files only mark these folders as Python packages.
 | `AGENTS.md` | The single project guide for any AI assistant: rules, architecture, money and database rules. |
 | `.claude/CLAUDE.md` | Points Claude Code to `AGENTS.md`. |
 | `.github/copilot-instructions.md` | Points GitHub Copilot to `AGENTS.md`. |
+| `.agents/skills/`, `.agents/agents/` | The single source for skills and agent roles. Edit only here. |
+| `scripts/sync_agents.py` | Generates the `.claude/` and `.github/` copies from `.agents/` (`make sync-agents`). |
+
+## Editor
+
+| File | Why it exists |
+|---|---|
+| `.vscode/settings.json` | Format and organize imports with ruff on save; hide cache folders. |
+| `.vscode/extensions.json` | Extensions VS Code offers to install for this project. |
+| `.vscode/launch.json` | Debug configurations (Django on port 8001, current pytest file). Used inside the dev container. |
+| `.devcontainer/devcontainer.json` | Opens VS Code inside the `app` container, so imports, ruff and tests use the real environment. |
