@@ -65,10 +65,8 @@ The `__init__.py` files only mark these folders as Python packages.
 | File | Why it exists |
 |---|---|
 | `AGENTS.md` | The single project guide for any AI assistant: rules, architecture, money and database rules. |
-| `.claude/CLAUDE.md` | Points Claude Code to `AGENTS.md`. |
 | `.github/copilot-instructions.md` | Points GitHub Copilot to `AGENTS.md`. |
-| `.agents/skills/`, `.agents/agents/` | The single source for skills and agent roles. Edit only here. |
-| `scripts/sync_agents.py` | Generates the `.claude/` and `.github/` copies from `.agents/` (`make sync-agents`). |
+| `.github/skills/`, `.github/agents/` | The skills and agent roles for GitHub Copilot. Edit them here. |
 
 ## Editor
 

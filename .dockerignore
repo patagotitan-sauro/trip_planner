@@ -2,8 +2,6 @@
 .github
 .vscode
 .devcontainer
-.agents
-.claude
 .env
 **/*.sqlite3*
 backups
