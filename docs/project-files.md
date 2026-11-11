@@ -50,6 +50,13 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 
 The `__init__.py` files only mark these folders as Python packages.
 
+## Documentation
+
+| File | Why it exists |
+|---|---|
+| `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary and open decisions. Requirements and business rules come next. |
+| `docs/project-files.md` | This file. |
+
 ## Quality
 
 | File | Why it exists |

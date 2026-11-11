@@ -7,12 +7,12 @@ This file tells any AI coding assistant (Claude Code, GitHub Copilot, Cursor, Co
 A web app to plan trips (destinations, day-by-day itinerary, estimated costs and a budget) and then track the spending of trips actually taken, comparing planned and actual costs. Later phases may add multi-currency conversion, shared expenses and reservation checklists.
 
 - Stack: Python 3.12, Django 5.2 LTS, SQLite (WAL mode), server-rendered templates, Docker Compose, pytest.
-- Requirements will live in `docs/especificacao.md` (not written yet). 
+- Requirements live in `docs/especificacao.md` (first version: scope, access, currency, glossary and open decisions; requirements and business rules come next). 
 - If the code and the specification disagree, do not silently pick one. Point out the difference and ask. 
 
 ## 2. Current state (update as the repo grows)
 
-Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests), `.github/workflows/ci.yml` (runs `make check` on push and pull request), `.github/skills/`, `.github/agents/` (skills and agent roles), `.vscode/`, `.devcontainer/`.
+Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `docs/especificacao.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests), `.github/workflows/ci.yml` (runs `make check` on push and pull request), `.github/skills/`, `.github/agents/` (skills and agent roles), `.vscode/`, `.devcontainer/`.
 
 Not created yet: any Django app, tests for business rules. Do not assume they exist or run commands that depend on them.
 
@@ -143,12 +143,12 @@ pytest and pytest-django are in the dev image and configured in `pytest.ini` (te
 ## 14. Security
 
 - No secrets in code, commits, logs or examples. Use environment variables; `.env` is git-ignored and `.env.example` has no real values.
-- Keep CSRF protection on. Every query for user data is scoped to the logged-in owner.
+- Keep CSRF protection on. Data belongs to the shared family space: every view requires an authenticated member, and accounts are created by the admin.
 - `DEBUG = False` and a strict `ALLOWED_HOSTS` outside local development.
 - Until HTTPS exists, do not enable secure-cookie or SSL-redirect settings (login would break over HTTP).
 - Never mark user input as safe in templates without sanitizing it.
 - Validate all input on the server side.
-- Add tests for access to another user's data.
+- Add tests that unauthenticated users cannot read or change any data.
 
 ## 15. Ask before you do these
 
