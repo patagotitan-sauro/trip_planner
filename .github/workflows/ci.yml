@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare environment
+        run: |
+          make init
+          # The container user (uid 1000) differs from the runner's, and the repo is bind-mounted.
+          chmod -R o+w .
+
+      - name: Start containers
+        run: make up
+
+      - name: Run checks
+        run: make check EXEC="docker compose exec -T app"
+
+      - name: Show app logs on failure
+        if: failure()
+        run: docker compose logs app
