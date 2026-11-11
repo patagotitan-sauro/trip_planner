@@ -7,31 +7,59 @@ This file tells any AI coding assistant (Claude Code, GitHub Copilot, Cursor, Co
 A web app to plan trips (destinations, day-by-day itinerary, estimated costs and a budget) and then track the spending of trips actually taken, comparing planned and actual costs. Later phases may add multi-currency conversion, shared expenses and reservation checklists.
 
 - Stack: Python 3.12, Django 5.2 LTS, SQLite (WAL mode), server-rendered templates, Docker Compose, pytest.
-- Requirements will live in `docs/especificacao.md` (not written yet). Do not invent requirements: ask a short, specific question or state your assumption.
+- Requirements will live in `docs/especificacao.md` (not written yet). 
+- If the code and the specification disagree, do not silently pick one. Point out the difference and ask. 
 
 ## 2. Current state (update as the repo grows)
 
-Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`.
+Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`.
 
-Not created yet: `Makefile`, the Django project, lint and test configuration, CI, skills. Do not assume they exist or run commands that depend on them.
+Not created yet: the Django project, lint and test configuration, CI, skills. Do not assume they exist or run commands that depend on them.
 
-## 3. How to work with the owner
+## 3. Communication style
+
+- Write clear, objective, educational explanations in English.
+- Explain the reasoning behind technical decisions, not only what the code does.
+- When more than one reasonable approach exists, compare the options with pros and cons and recommend one.
+- Adapt examples to this project: its data volume (small, personal or family use), its file structure, its database (SQLite), its integrations (exchange-rate API) and its constraints.
+- When proposing charts or visualizations, match the chart type to the business question, the data type and the audience.
+
+## 4. How to work
 
 The owner is building this environment file by file to learn.
 
-- Work on one file or one concern at a time.
-- Explain what each part does and why, and compare options with pros and cons when more than one is reasonable.
-- Verify versions of dependencies and base images against current sources before recommending them. Do not rely on memory.
-- Keep changes small and say how to check them.
+1. **Understand first.** Read the relevant files, and the specification section once it exists, before editing.
+2. **Start simple, then improve.** Deliver the simplest version that works, then propose improvements as separate steps.
+3. **Keep changes small.** One concern per change, one file at a time, no unrelated refactoring.
+4. **Do not invent requirements.** If something is ambiguous or missing, ask a short, specific question or state the assumption you are making.
+5. **Plan large changes.** For anything touching several files or the database schema, outline the plan first and wait for confirmation.
+6. **Verify.** Run the checks that exist (see "Current state"), report what you ran and the result, and say if you could not run something. Say how the owner can check each change.
+7. **Verify versions.** Check dependency and base-image versions against current sources before recommending them. Do not rely on memory.
 
-## 4. Language and naming
+## 5. Commands
+
+The `Makefile` is the single entry point; run `make help` for the list. Everything runs inside Docker Compose.
+
+| Command | What it does |
+|---|---|
+| `make init` | Create `.env` from `.env.example` (never overwrites) |
+| `make bootstrap` | One-time: create the Django project (`config/`) and base folders |
+| `make up` / `make down` | Build and start (development) / stop, keeping the data volume |
+| `make logs` / `make shell` | Follow logs / open a shell in the container |
+| `make migrations` / `make migrate` | Create / apply migrations |
+| `make superuser` | Create an admin user |
+| `make prod-up` | Production-like run, without the dev override |
+
+Test, lint and backup commands arrive with their configuration. Do not assume they exist until "Current state" lists them.
+
+## 6. Language and naming
 
 - User-facing text (labels, messages, templates): Brazilian Portuguese.
 - Code identifiers, comments, docstrings, commit messages: English.
 - Domain terms from the specification keep their spelling, for example the planned Django app names (`contas`, `viagens`, `planejamento`, `despesas`, `relatorios`).
 - Follow PEP 8 and use type hints on new functions.
 
-## 5. Architecture (planned)
+## 7. Architecture (planned)
 
 Four layers; dependencies point one way (presentation -> services -> models and integrations):
 
@@ -42,17 +70,63 @@ Four layers; dependencies point one way (presentation -> services -> models and 
 | Models | `apps/*/models.py` | Entities and persistence |
 | Integrations | `servicos/integracoes/` | External APIs behind an interface |
 
-Prefer composition over inheritance, depend on interfaces, keep modules cohesive, and do not over-engineer.
+## 8. Design principles
 
-## 6. Money and data rules (critical)
+Apply these when designing or refactoring:
+
+- **Encapsulate what varies.** Isolate the parts likely to change.
+- **Favor composition over inheritance.** Inherit only for a true "is-a" relationship.
+- **Program to interfaces, not implementations.** Depend on abstractions (protocols or abstract base classes).
+- **Keep coupling low and cohesion high.** A module should have one clear reason to exist.
+
+SOLID, applied to reusable modules, classes and services:
+
+- **S**ingle responsibility: one reason to change per class or module.
+- **O**pen/closed: extend behavior by adding code, not by editing stable code.
+- **L**iskov substitution: a subtype must work wherever its base type is expected.
+- **I**nterface segregation: prefer several small interfaces to one large one.
+- **D**ependency inversion: high-level code depends on abstractions, not on concrete details.
+
+Do not over-engineer. Use a pattern only when it solves a real problem present now.
+
+## 9. Code quality
+
+- Prioritize readability: small functions, clear names, no clever tricks.
+- Separate concerns: do not mix parsing, validation, business rules and rendering in the same function.
+- Handle errors deliberately: validate input at the boundary, raise specific exceptions, never swallow errors silently, and show the user a clear message.
+- Design for testability: pure functions and injected dependencies instead of hidden global state.
+- Remove dead code and unused imports. Do not leave commented-out code.
+- Comments explain why, not what.
+
+## 10. Testing
+
+pytest and pytest-django are in the dev image; their configuration is not created yet.
+
+- Test business rules in `servicos/` with unit tests first. They need no database or HTTP.
+- Cover edge cases for money: zero, negative values, rounding, currencies with different decimal places, and splits that do not divide evenly.
+- Every bug fix includes a regression test that fails before the fix.
+- Tests are deterministic: no real network calls (mock the exchange-rate API), no dependence on the current date unless it is injected.
+- Name tests by behavior, for example `test_split_gives_remainder_to_first_participants`.
+
+## 11. Money and data rules (critical)
 
 - Never use `float` for money. Use `decimal.Decimal` and Django `DecimalField`.
 - Round in one place only (`ROUND_HALF_UP`, quantized to the currency's decimal places).
 - An expense stores the original amount, currency, rate to the base currency and converted amount, converted when recorded. Later rate changes must not alter past reports.
 - Split amounts so the parts add up exactly to the total, with leftover cents in a fixed, documented order.
 - Store timestamps in UTC; display in `America/Sao_Paulo`.
+- Exchange rates need more precision than amounts (for example 8 decimal places).
+- Planned-vs-actual: the difference is actual minus planned, and the percentage is the difference divided by planned. Keep this in one service function and test categories that have no budget.
+- Open decision (proposed in the specification, confirm before relying on it): a trip's plan is frozen when the trip is marked as completed, so the comparison stays faithful to what was planned.
 
-## 7. Docker and Compose
+## 12. Database (SQLite)
+
+- Enable WAL mode. Run a single app instance against the file.
+- Commit all migrations. Never edit or delete an applied migration; create a new one.
+- Make schema changes backward compatible when possible, and warn before any change that can lose data.
+- Backups use the SQLite backup API, not a plain file copy while the app is running.
+
+## 13. Docker and Compose
 
 - Project name `trip-planner`. One service `app`, one named volume `dados` holding the SQLite file at `/data/db.sqlite3`. The database never goes in the image or in Git.
 - The `Dockerfile` has three stages: `base`, `dev` (adds test and lint tools) and `prod` (code baked in, runs gunicorn). Base image: `python:3.12-slim-trixie`.
@@ -61,14 +135,17 @@ Prefer composition over inheritance, depend on interfaces, keep modules cohesive
 - Never run `docker compose down -v` without explicit confirmation: it deletes the database volume.
 - Images contain nothing machine-specific. Hostnames, IPs and secrets live in each machine's `.env`.
 
-## 8. Security
+## 14. Security
 
 - No secrets in code, commits, logs or examples. Use environment variables; `.env` is git-ignored and `.env.example` has no real values.
 - Keep CSRF protection on. Every query for user data is scoped to the logged-in owner.
 - `DEBUG = False` and a strict `ALLOWED_HOSTS` outside local development.
 - Until HTTPS exists, do not enable secure-cookie or SSL-redirect settings (login would break over HTTP).
+- Never mark user input as safe in templates without sanitizing it.
+- Validate all input on the server side.
+- Add tests for access to another user's data.
 
-## 9. Ask before you do these
+## 15. Ask before you do these
 
 - Deleting data, volumes, migrations or files you did not create.
 - Adding or upgrading a dependency.
@@ -76,6 +153,6 @@ Prefer composition over inheritance, depend on interfaces, keep modules cohesive
 - Running commands that affect anything outside this repository.
 - Any step you are unsure is reversible.
 
-## 10. Git
+## 16. Git
 
 Small, focused commits with imperative messages (for example `Add Makefile`). Never commit `.env`, database files or virtual environments. Do not rewrite shared history without explicit permission.
