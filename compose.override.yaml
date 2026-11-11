@@ -1,0 +1,13 @@
+# Development overrides (loaded automatically by `docker compose`).
+services:
+  app:
+    build:
+      target: dev
+    image: trip-planner:dev
+    environment:
+      DJANGO_DEBUG: "1"
+      RUN_COLLECTSTATIC: "0"
+    ports: !override
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
