@@ -12,9 +12,9 @@ A web app to plan trips (destinations, day-by-day itinerary, estimated costs and
 
 ## 2. Current state (update as the repo grows)
 
-Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`.
+Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests).
 
-Not created yet: the Django project, lint and test configuration, CI, skills. Do not assume they exist or run commands that depend on them.
+Not created yet: CI, skills, any Django app, tests for business rules. Do not assume they exist or run commands that depend on them.
 
 ## 3. Communication style
 
@@ -49,8 +49,13 @@ The `Makefile` is the single entry point; run `make help` for the list. Everythi
 | `make migrations` / `make migrate` | Create / apply migrations |
 | `make superuser` | Create an admin user |
 | `make prod-up` | Production-like run, without the dev override |
+| `make lint` | `ruff check`, `ruff format --check` and the float-for-money check; changes nothing |
+| `make test` | Run pytest |
+| `make check` | `make lint`, `manage.py check`, `makemigrations --check --dry-run`, then `make test` |
 
-Test, lint and backup commands arrive with their configuration. Do not assume they exist until "Current state" lists them.
+The float check fails on `float` used for money in `apps/` and `servicos/` (escape hatch: `# allow-float: reason`). `pre-commit run --all-files` runs the same lint and float checks as the commit hook (host tool, needs the container running; `pre-commit install` once per clone).
+
+Backup commands arrive later. Do not assume they exist until "Current state" lists them.
 
 ## 6. Language and naming
 
@@ -100,7 +105,7 @@ Do not over-engineer. Use a pattern only when it solves a real problem present n
 
 ## 10. Testing
 
-pytest and pytest-django are in the dev image; their configuration is not created yet.
+pytest and pytest-django are in the dev image and configured in `pytest.ini` (tests live in `tests/`). Only the settings smoke tests exist so far.
 
 - Test business rules in `servicos/` with unit tests first. They need no database or HTTP.
 - Cover edge cases for money: zero, negative values, rounding, currencies with different decimal places, and splits that do not divide evenly.
