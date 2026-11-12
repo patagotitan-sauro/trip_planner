@@ -8,13 +8,13 @@ Aplicação web para uma família estudar viagens possíveis e decidir qual faze
 
 Na primeira versão:
 
-- Viagens, com nome, data de início, data de fim e um orçamento total em BRL.
+- Viagens, com nome, datas de início e fim (exceto em stand-by) e um orçamento total em BRL, opcional.
 - Destinos de cada viagem.
 - Roteiro dia a dia.
 - Custos planejados por categoria.
 - Despesas realizadas, com IOF quando aplicável.
 - Viagens possíveis e planejadas, em estudo antes de decidir. A comparação é avaliação subjetiva do usuário.
-- Viagens em stand-by (adiadas ou congeladas), sem data obrigatória, que podem voltar ao planejamento.
+- Viagens em stand-by (adiadas ou congeladas), sem datas, editáveis com custos planejados e roteiro por dia numerado, que podem voltar ao planejamento.
 - Viagens em planejamento, com os custos planejados somados ao longo da pesquisa.
 - Viagens concluídas, agrupadas por ano, com os custos realizados.
 - Resumo de custos por ano: planejados (viagens em planejamento) e realizados (viagens concluídas).
@@ -45,15 +45,14 @@ Fora da primeira versão:
 
 | Termo | Significado |
 |---|---|
-| Viagem | Plano com nome, data de início, data de fim, destinos, roteiro, custos planejados e orçamento total. |
-| Viagem possível | Viagem em estudo, ainda não escolhida, usada para comparar opções. |
-| Viagem possível | Viagem em planejamento, ainda não escolhida, usada para comparar opções. |
-| Stand-by | Viagem adiada ou congelada, sem data obrigatória e fora das telas de planejamento. |
+| Viagem | Plano com nome, destinos, roteiro, custos planejados e orçamento opcional. Tem data de início e data de fim, exceto em stand-by. |
+| Viagem possível | Viagem em planejamento, ainda não escolhida, com data de início e fim, usada para comparar opções. |
+| Stand-by | Viagem adiada ou congelada, sem datas de início e fim e fora das telas de planejamento. Pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). |
 | Destino | Local visitado em uma viagem. |
 | Dia do roteiro | Um dia da viagem com suas atividades. |
 | Categoria | Tipo de gasto (por exemplo, hospedagem, transporte, alimentação). |
 | Custo planejado | Valor estimado de uma categoria para uma viagem futura. Usado para planejar gastos e alocar saldos. |
-| Despesa realizada | Valor efetivamente gasto, lançado durante ou depois da viagem. |
+| Despesa realizada | Valor efetivamente gasto, lançado antes, durante ou depois da viagem. |
 | Cotação | Taxa para converter uma moeda em BRL. Sugerida por API e editável pelo usuário. |
 | País | Código ISO 3166-1 alfa-2 de um destino (por exemplo, BR, US). |
 | Moeda | Código ISO 4217 de uma despesa (por exemplo, BRL, USD, EUR). |
@@ -62,7 +61,7 @@ Fora da primeira versão:
 | Cartão pré-pago | Cartão com saldo em uma ou mais moedas, carregado antes de gastar. A carga gera IOF. |
 | Saldo | Valor já comprado ou carregado em cartão pré-pago ou em espécie, usado para pagar despesas. |
 | IOF | Imposto cobrado em despesas em moeda estrangeira. |
-| Orçamento | Valor total em BRL que a família pretende gastar na viagem. |
+| Orçamento | Valor total em BRL que a família pretende gastar na viagem. Opcional, inclusive para planejar viagens. |
 
 ## 5. Regras de negócio
 
@@ -94,7 +93,7 @@ Fora da primeira versão:
 - RN-15: o custo planejado inclui o IOF estimado pela forma de pagamento prevista.
 - RN-16: ao lançar uma despesa em uma moeda para a qual há saldo, o sistema pergunta se a despesa será paga com o saldo ou com outra forma de pagamento (por exemplo, cartão de crédito). A resposta define se o IOF é cobrado naquele lançamento.
 - RN-17: saldos podem existir em mais de uma moeda. Cada saldo tem uma moeda e um custo em BRL, que inclui o IOF pago na compra ou na carga.
-- RN-18: a viagem está em um de três estados: stand-by, em planejamento ou concluída. A viagem em stand-by não tem data obrigatória e não aparece nas telas de planejamento. Ela volta ao planejamento quando o usuário a inclui nele.
+- RN-18: a viagem está em um de três estados: stand-by, em planejamento ou concluída. A viagem em stand-by não tem data obrigatória, não aparece nas telas de planejamento e pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). Ela volta ao planejamento quando o usuário a inclui nele.
 - RN-19: orçamento é opcional. Os custos planejados são somados à medida que a pesquisa avança. Sem orçamento, não há valor restante a exibir.
 - RN-20: uma despesa planejada pode ser marcada como cancelável, com a data limite de cancelamento informada pelo usuário.
 - RN-21: qualquer membro autenticado pode excluir dados lançados por outro membro.
