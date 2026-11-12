@@ -4,10 +4,10 @@ This file tells any AI coding assistant (Claude Code, GitHub Copilot, Cursor, Co
 
 ## 1. Project overview
 
-A web app to plan trips (destinations, day-by-day itinerary, estimated costs and a budget) and then track the spending of trips actually taken, comparing planned and actual costs. Later phases may add multi-currency conversion, shared expenses and reservation checklists.
+A family web app to study possible trips and decide which one to take (destinations, day-by-day itinerary, estimated costs and a budget), manage the expenses of the chosen trip (including allocation of prepaid card and cash balances), and keep a history of completed trips with their costs. Later phases may add shared expenses and reservation checklists.
 
 - Stack: Python 3.12, Django 5.2 LTS, SQLite (WAL mode), server-rendered templates, Docker Compose, pytest.
-- Requirements live in `docs/especificacao.md` (first version: scope, access, currency, glossary and open decisions; requirements and business rules come next). 
+- Requirements and business rules live in `docs/especificacao.md`. Rules such as IOF and trip classification are cited there as RN-xx; do not copy their values here. 
 - If the code and the specification disagree, do not silently pick one. Point out the difference and ask. 
 
 ## 2. Current state (update as the repo grows)
@@ -71,9 +71,9 @@ Four layers; dependencies point one way (presentation -> services -> models and 
 | Layer | Where | Responsibility |
 |---|---|---|
 | Presentation | `apps/*/views.py`, `forms.py`, `templates/` | HTTP, forms, rendering. Thin, no business rules |
-| Services | `servicos/` | Business rules: money, conversion, splitting, planned-vs-actual. Pure Python, no HTTP |
+| Services | `servicos/` | Business rules: money, conversion, splitting, balance allocation, trip comparison, history totals. Pure Python, no HTTP |
 | Models | `apps/*/models.py` | Entities and persistence |
-| Integrations | `servicos/integracoes/` | External APIs behind an interface |
+| Integrations | `servicos/integracoes/` | External APIs behind an interface. Exchange-rate suggestion: Frankfurter (`api.frankfurter.dev`), no API key |
 
 ## 8. Design principles
 
@@ -117,12 +117,12 @@ pytest and pytest-django are in the dev image and configured in `pytest.ini` (te
 
 - Never use `float` for money. Use `decimal.Decimal` and Django `DecimalField`.
 - Round in one place only (`ROUND_HALF_UP`, quantized to the currency's decimal places).
-- An expense stores the original amount, currency, rate to the base currency and converted amount, converted when recorded. Later rate changes must not alter past reports.
+- An expense stores the original amount, currency, rate to the base currency, converted amount, IOF rate and IOF amount, all converted when recorded. Later rate changes must not alter past reports.
 - Split amounts so the parts add up exactly to the total, with leftover cents in a fixed, documented order.
 - Store timestamps in UTC; display in `America/Sao_Paulo`.
 - Exchange rates need more precision than amounts (for example 8 decimal places).
-- Planned-vs-actual: the difference is actual minus planned, and the percentage is the difference divided by planned. Keep this in one service function and test categories that have no budget.
-- Open decision (proposed in the specification, confirm before relying on it): a trip's plan is frozen when the trip is marked as completed, so the comparison stays faithful to what was planned.
+- Balance allocation follows RN-14, RN-16 and RN-17 in the spec. Keep the calculation in one service function and test it.
+- Open decisions (spec section 6): confirm the proposals there before implementing the rules they affect.
 
 ## 12. Database (SQLite)
 

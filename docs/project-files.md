@@ -14,7 +14,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 
 | File | Why it exists |
 |---|---|
-| `requirements.txt` | Packages needed to run the app (Django, gunicorn, whitenoise). |
+| `requirements.txt` | Packages needed to run the app (Django, django-countries, gunicorn, whitenoise). |
 | `requirements-dev.txt` | Adds tools for development only (pytest, ruff, debugpy). Not installed in production. |
 
 ## Docker and Compose
@@ -44,7 +44,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/wsgi.py` | Entry point gunicorn uses to serve the app. |
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
-| `servicos/` | Business rules in pure Python (money, conversion, splitting, planned vs actual). No HTTP. |
+| `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
 | `tests/` | Automated tests. |
 
