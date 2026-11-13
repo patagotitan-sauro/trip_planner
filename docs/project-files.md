@@ -64,6 +64,7 @@ The `__init__.py` files only mark these folders as Python packages.
 |---|---|
 | `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary and open decisions. Requirements and business rules come next. |
 | `docs/instruction.md` | Data model and how another Django project can reuse a copy of the SQLite database. Reference only, not a requirement of this project. |
+| `docs/roadmap.md` | Step-by-step plan for building the app, one phase per chat. |
 | `docs/project-files.md` | This file. |
 
 ## Quality
