@@ -50,6 +50,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations). Also the placeholder home page until the trip list exists. |
 | `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
+| `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
 | `apps/despesas/` | Expense categories and expenses (models and migrations). |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |

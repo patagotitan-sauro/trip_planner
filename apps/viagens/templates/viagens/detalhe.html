@@ -20,7 +20,7 @@
   <a href="{% url 'viagens:editar' viagem.pk %}" role="button" class="outline">Editar viagem</a>
   <a href="{% url 'viagens:inicio' %}" role="button" class="secondary outline">Voltar</a>
   {% if pode_excluir %}
-    <a href="{% url 'viagens:excluir' viagem.pk %}" role="button" class="contrast outline">Excluir viagem</a>
+    <a href="{% url 'viagens:excluir' viagem.pk %}" role="button" class="perigo">Excluir viagem</a>
   {% endif %}
 </p>
 

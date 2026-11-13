@@ -1,0 +1,12 @@
+/* Pico has no red button, so the danger color is defined here through its variables. */
+.perigo {
+  --pico-background-color: #c62828;
+  --pico-border-color: #c62828;
+  --pico-color: #fff;
+}
+
+.perigo:is(:hover, :active, :focus) {
+  --pico-background-color: #a81f1f;
+  --pico-border-color: #a81f1f;
+  --pico-color: #fff;
+}
