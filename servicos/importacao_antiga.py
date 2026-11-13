@@ -9,7 +9,7 @@ DESTINOS: dict[str, tuple[str, str]] = {
     "Porto Alegre (Brasil)": ("BR", "Porto Alegre"),
     "Manaus (Rio Negro)": ("BR", "Manaus"),
     "Japão": ("JP", ""),
-    "Floripa - Natal": ("BR", "Floripa - Natal"),
+    "Floripa - Natal": ("BR", "Florianópolis"),
 }
 
 SITUACOES_DESPESA = {"actual": "realizada", "planned": "planejada"}

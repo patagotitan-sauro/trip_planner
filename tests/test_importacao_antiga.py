@@ -28,6 +28,10 @@ def test_destination_without_city_keeps_empty_city() -> None:
     assert importacao_antiga.destino_da_viagem("Japão") == ("JP", "")
 
 
+def test_trip_name_is_not_used_as_the_city() -> None:
+    assert importacao_antiga.destino_da_viagem("Floripa - Natal") == ("BR", "Florianópolis")
+
+
 def test_unknown_destination_is_rejected() -> None:
     with pytest.raises(ValueError, match="sem mapeamento"):
         importacao_antiga.destino_da_viagem("Lisboa")
