@@ -28,6 +28,7 @@ Not created yet: the `contas` app, business rules in `servicos/` and their tests
 
 The owner is building this environment file by file to learn.
 
+0. **Follow the roadmap.** Before starting work, read `docs/roadmap.md` and work on the next open phase. Update its checklist in the same change.
 1. **Understand first.** Read the relevant files, and the specification section once it exists, before editing.
 2. **Start simple, then improve.** Deliver the simplest version that works, then propose improvements as separate steps.
 3. **Keep changes small.** One concern per change, one file at a time, no unrelated refactoring.
