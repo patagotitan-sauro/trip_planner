@@ -68,8 +68,13 @@ def calcular_despesa(
     forma_pagamento: str,
     aliquota_credito: Decimal,
     aliquota_pre_pago_dinheiro: Decimal,
+    taxa_iof_gravada: Decimal | None = None,
 ) -> ResultadoDaDespesa:
-    """Converts to BRL and computes the IOF, all frozen when the expense is recorded."""
+    """Converts to BRL and computes the IOF, all frozen when the expense is recorded.
+
+    RN-12: `taxa_iof_gravada` is the rate already stored on an unchanged expense; it wins over
+    the trip's current rates, which only apply to new entries.
+    """
     if valor < 0:
         raise ValueError("O valor não pode ser negativo.")
     if moeda_estrangeira(moeda):
@@ -80,6 +85,8 @@ def calcular_despesa(
         taxa_de_conversao = Decimal(1)
 
     aliquota = aliquota_do_iof(forma_pagamento, moeda, aliquota_credito, aliquota_pre_pago_dinheiro)
+    if taxa_iof_gravada is not None and moeda_estrangeira(moeda):
+        aliquota = taxa_iof_gravada
     valor_brl = converter_para_brl(valor, taxa_de_conversao)
     return ResultadoDaDespesa(
         cotacao=taxa_de_conversao,

@@ -170,3 +170,26 @@ def test_total_of_nothing_is_zero():
 def test_total_rejects_an_expense_without_brl_amount():
     with pytest.raises(ValueError, match="sem valor em BRL"):
         despesas.total_em_brl([DespesaFalsa(None, Decimal("0.00"))])
+
+
+def test_stored_rate_wins_over_the_trip_rates_for_an_unchanged_expense():
+    resultado = despesas.calcular_despesa(
+        Decimal("100.00"),
+        "USD",
+        Decimal("5"),
+        "cartao_credito",
+        Decimal("0.05"),
+        PRE_PAGO,
+        taxa_iof_gravada=Decimal("0.035"),
+    )
+
+    assert resultado.taxa_iof == Decimal("0.035")
+    assert resultado.valor_iof == Decimal("17.50")
+
+
+def test_stored_rate_is_ignored_for_brl():
+    resultado = despesas.calcular_despesa(
+        Decimal("100.00"), "BRL", None, "pix", CREDITO, PRE_PAGO, taxa_iof_gravada=Decimal("0.035")
+    )
+
+    assert (resultado.taxa_iof, resultado.valor_iof) == (Decimal(0), Decimal("0.00"))
