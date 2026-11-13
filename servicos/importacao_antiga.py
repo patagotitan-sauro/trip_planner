@@ -1,4 +1,7 @@
 from datetime import date
+from decimal import Decimal
+
+MOEDA_CASA = "BRL"
 
 DESTINOS: dict[str, tuple[str, str]] = {
     "Cape Town (South Africa)": ("ZA", "Cape Town"),
@@ -30,3 +33,20 @@ def situacao_da_despesa(status_antigo: str) -> str:
     if status_antigo not in SITUACOES_DESPESA:
         raise ValueError(f"Status de despesa desconhecido: {status_antigo}")
     return SITUACOES_DESPESA[status_antigo]
+
+
+def taxa_da_despesa(
+    moeda: str,
+    status_antigo: str,
+    taxa_antiga: Decimal | None,
+    taxa_planejada: Decimal | None,
+) -> Decimal:
+    if moeda == MOEDA_CASA:
+        return Decimal(1)
+    if status_antigo == "actual":
+        if taxa_antiga is None:
+            raise ValueError(f"Despesa realizada em {moeda} sem taxa de câmbio.")
+        return taxa_antiga
+    if taxa_planejada is None:
+        raise ValueError(f"Despesa planejada em {moeda} sem taxa compartilhada.")
+    return taxa_planejada

@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -40,3 +41,27 @@ def test_expense_statuses_map_to_portuguese_situations() -> None:
 def test_unknown_expense_status_is_rejected() -> None:
     with pytest.raises(ValueError, match="desconhecido"):
         importacao_antiga.situacao_da_despesa("refunded")
+
+
+def test_home_currency_always_has_rate_one() -> None:
+    assert importacao_antiga.taxa_da_despesa("BRL", "actual", None, None) == Decimal(1)
+
+
+def test_realized_expense_keeps_its_own_rate() -> None:
+    taxa = importacao_antiga.taxa_da_despesa("ZAR", "actual", Decimal("3.4"), Decimal("2.9"))
+    assert taxa == Decimal("3.4")
+
+
+def test_planned_expense_uses_the_shared_trip_rate() -> None:
+    taxa = importacao_antiga.taxa_da_despesa("ZAR", "planned", None, Decimal("2.9"))
+    assert taxa == Decimal("2.9")
+
+
+def test_realized_expense_without_rate_is_rejected() -> None:
+    with pytest.raises(ValueError, match="sem taxa de câmbio"):
+        importacao_antiga.taxa_da_despesa("ZAR", "actual", None, Decimal("2.9"))
+
+
+def test_planned_expense_without_shared_rate_is_rejected() -> None:
+    with pytest.raises(ValueError, match="sem taxa compartilhada"):
+        importacao_antiga.taxa_da_despesa("ZAR", "planned", None, None)

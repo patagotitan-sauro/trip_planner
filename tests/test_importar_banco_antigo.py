@@ -134,3 +134,16 @@ def test_unknown_destination_cancels_the_whole_import(banco_antigo: Path) -> Non
 
     assert not Viagem.objects.exists()
     assert not Categoria.objects.exists()
+
+
+@pytest.mark.django_db
+def test_missing_shared_rate_names_the_old_trip(banco_antigo: Path) -> None:
+    con = sqlite3.connect(banco_antigo)
+    con.execute("DELETE FROM expenses_plannedrate")
+    con.commit()
+    con.close()
+
+    with pytest.raises(CommandError, match="Viagem 1 no banco antigo"):
+        importar(banco_antigo)
+
+    assert not Viagem.objects.exists()

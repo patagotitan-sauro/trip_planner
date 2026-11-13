@@ -13,8 +13,6 @@ from apps.viagens.models import AtividadeRoteiro, Destino, Viagem
 from servicos import importacao_antiga
 from servicos.moeda import cotacao_brl, valor_em_brl
 
-MOEDA_CASA = "BRL"
-
 # Despesa sem moeda própria usa a moeda da viagem.
 CONSULTA_DESPESAS = """
     SELECT e.id, e.trip_id, e.category_id, e.description, e.amount, e.status,
@@ -111,7 +109,12 @@ def _importar_despesas(
     ) in conexao.execute(CONSULTA_DESPESAS).fetchall():
         valor_original = Decimal(str(valor))
         taxa_antiga_decimal = None if taxa_antiga is None else Decimal(str(taxa_antiga))
-        taxa = _taxa_da_despesa(moeda, status, taxa_antiga_decimal, id_viagem, taxas_planejadas)
+        try:
+            taxa = importacao_antiga.taxa_da_despesa(
+                moeda, status, taxa_antiga_decimal, taxas_planejadas.get((id_viagem, moeda))
+            )
+        except ValueError as erro:
+            raise ValueError(f"{erro} Viagem {id_viagem} no banco antigo.") from erro
         despesas[id_antigo] = Despesa.objects.create(
             viagem=viagens[id_viagem],
             categoria=categorias[id_categoria],
@@ -134,24 +137,6 @@ def _taxas_planejadas(conexao: sqlite3.Connection) -> dict[tuple[int, str], Deci
         """
     ).fetchall()
     return {(id_viagem, codigo): Decimal(str(taxa)) for id_viagem, codigo, taxa in linhas}
-
-
-def _taxa_da_despesa(
-    moeda: str,
-    status: str,
-    taxa_antiga: Decimal | None,
-    id_viagem: int,
-    taxas_planejadas: dict[tuple[int, str], Decimal],
-) -> Decimal:
-    if moeda == MOEDA_CASA:
-        return Decimal(1)
-    if status == "actual":
-        if taxa_antiga is None:
-            raise ValueError(f"Despesa realizada em {moeda} sem taxa de câmbio.")
-        return taxa_antiga
-    if (id_viagem, moeda) not in taxas_planejadas:
-        raise ValueError(f"Sem taxa compartilhada de {moeda} na viagem {id_viagem}.")
-    return taxas_planejadas[(id_viagem, moeda)]
 
 
 def _importar_atividades(
