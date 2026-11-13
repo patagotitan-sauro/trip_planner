@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, time
 from typing import Protocol
 
 STAND_BY = "stand_by"
@@ -68,3 +68,37 @@ def validar_posicao_da_atividade(estado: str, data: date | None, dia: int | None
     elif data is None:
         return {"data": "Informe a data."}
     return {}
+
+
+class ComPosicaoNoRoteiro(Protocol):
+    data: date | None
+    dia: int | None
+    hora: time | None
+
+
+@dataclass
+class GrupoDoRoteiro[T]:
+    chave: date | int | None  # date, or day number in stand-by; None when missing
+    atividades: list[T]
+
+
+def agrupar_roteiro[T: ComPosicaoNoRoteiro](
+    atividades: list[T], estado: str
+) -> list[GrupoDoRoteiro[T]]:
+    """RN-18: group by day number in stand-by and by date otherwise; items without it go last."""
+    por_chave: dict[date | int | None, list[T]] = {}
+    for atividade in atividades:
+        chave = atividade.dia if estado == STAND_BY else atividade.data
+        por_chave.setdefault(chave, []).append(atividade)
+
+    chaves = sorted(chave for chave in por_chave if chave is not None)
+    if None in por_chave:
+        chaves.append(None)
+    return [
+        GrupoDoRoteiro(
+            chave,
+            # sorted() is stable, so activities at the same time keep their input order.
+            sorted(por_chave[chave], key=lambda a: (a.hora is None, a.hora or time.min)),
+        )
+        for chave in chaves
+    ]

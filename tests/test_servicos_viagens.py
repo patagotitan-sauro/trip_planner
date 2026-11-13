@@ -1,9 +1,21 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
 
 import pytest
 
 from servicos import viagens
+
+
+@dataclass
+class AtividadeFalsa:
+    nome: str
+    data: date | None = None
+    dia: int | None = None
+    hora: time | None = None
+
+
+def _nomes(grupo):
+    return [atividade.nome for atividade in grupo.atividades]
 
 
 @dataclass
@@ -94,3 +106,55 @@ def test_only_planning_and_stand_by_trips_can_be_deleted():
     assert viagens.pode_excluir_viagem("planejamento")
     assert viagens.pode_excluir_viagem("stand_by")
     assert not viagens.pode_excluir_viagem("concluida")
+
+
+def test_itinerary_is_grouped_by_date_in_ascending_order():
+    tarde = AtividadeFalsa("Jantar", data=date(2027, 1, 2), hora=time(20, 0))
+    manha = AtividadeFalsa("Café", data=date(2027, 1, 2), hora=time(8, 30))
+    outro_dia = AtividadeFalsa("Praia", data=date(2027, 1, 1))
+
+    grupos = viagens.agrupar_roteiro([tarde, outro_dia, manha], "planejamento")
+
+    assert [grupo.chave for grupo in grupos] == [date(2027, 1, 1), date(2027, 1, 2)]
+    assert _nomes(grupos[1]) == ["Café", "Jantar"]
+
+
+def test_stand_by_itinerary_is_grouped_by_day_number_not_by_date():
+    dia_2 = AtividadeFalsa("B", data=date(2020, 1, 1), dia=2)
+    dia_1 = AtividadeFalsa("A", data=date(2030, 1, 1), dia=1)
+
+    grupos = viagens.agrupar_roteiro([dia_2, dia_1], "stand_by")
+
+    assert [grupo.chave for grupo in grupos] == [1, 2]
+
+
+def test_activities_without_time_come_after_timed_ones_in_input_order():
+    sem_hora_a = AtividadeFalsa("A", dia=1)
+    com_hora = AtividadeFalsa("B", dia=1, hora=time(23, 0))
+    sem_hora_c = AtividadeFalsa("C", dia=1)
+
+    grupos = viagens.agrupar_roteiro([sem_hora_a, com_hora, sem_hora_c], "stand_by")
+
+    assert _nomes(grupos[0]) == ["B", "A", "C"]
+
+
+def test_midnight_activity_is_sorted_before_untimed_ones():
+    meia_noite = AtividadeFalsa("Virada", dia=1, hora=time(0, 0))
+    sem_hora = AtividadeFalsa("Livre", dia=1)
+
+    grupos = viagens.agrupar_roteiro([sem_hora, meia_noite], "stand_by")
+
+    assert _nomes(grupos[0]) == ["Virada", "Livre"]
+
+
+def test_activities_missing_the_day_or_date_form_a_last_group():
+    sem_data = AtividadeFalsa("Solta")
+    com_data = AtividadeFalsa("Certa", data=date(2027, 1, 1))
+
+    grupos = viagens.agrupar_roteiro([sem_data, com_data], "planejamento")
+
+    assert [grupo.chave for grupo in grupos] == [date(2027, 1, 1), None]
+
+
+def test_empty_itinerary_has_no_groups():
+    assert viagens.agrupar_roteiro([], "planejamento") == []
