@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ viagem.nome }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<hgroup>
+  <h1>{{ viagem.nome }}</h1>
+  <p>
+    {{ viagem.get_estado_display }} |
+    {% if viagem.data_inicio and viagem.data_fim %}
+      {{ viagem.data_inicio|date:"d/m/Y" }} a {{ viagem.data_fim|date:"d/m/Y" }}
+    {% else %}
+      Sem datas
+    {% endif %}
+    {% if viagem.orcamento is not None %}| Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}{% endif %}
+  </p>
+</hgroup>
+
+<p>
+  <a href="{% url 'viagens:editar' viagem.pk %}" role="button" class="outline">Editar viagem</a>
+  <a href="{% url 'viagens:inicio' %}" role="button" class="secondary outline">Voltar</a>
+</p>
+
+<section>
+  <h2>
+    Destinos
+    {% if viagem.tipo == "internacional" %}<mark>Internacional</mark>
+    {% elif viagem.tipo == "nacional" %}<mark>Nacional</mark>{% endif %}
+  </h2>
+
+  {% for destino in viagem.destinos.all %}
+    <article>
+      <div role="group">
+        <span>{% if destino.cidade %}{{ destino.cidade }}, {% endif %}{{ destino.pais.name }}</span>
+        <form method="post" action="{% url 'viagens:remover_destino' viagem.pk destino.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="secondary outline">Remover</button>
+        </form>
+      </div>
+    </article>
+  {% empty %}
+    <p>Nenhum destino ainda.</p>
+  {% endfor %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% for campo in form %}
+      <label>
+        {{ campo.label }}
+        {{ campo }}
+        {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+      </label>
+    {% endfor %}
+    <button type="submit">Adicionar destino</button>
+  </form>
+</section>
+{% endblock %}

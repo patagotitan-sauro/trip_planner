@@ -1,6 +1,6 @@
 <article>
   <hgroup>
-    <h3>{{ viagem.nome }}</h3>
+    <h3><a href="{% url 'viagens:detalhe' viagem.pk %}">{{ viagem.nome }}</a></h3>
     <p>
       {% if viagem.data_inicio and viagem.data_fim %}
         {{ viagem.data_inicio|date:"d/m/Y" }} a {{ viagem.data_fim|date:"d/m/Y" }}

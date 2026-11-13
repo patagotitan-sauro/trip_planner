@@ -2,12 +2,25 @@ from django import forms
 
 from servicos.viagens import PLANEJAMENTO, STAND_BY, validar_datas_da_viagem
 
-from .models import EstadoViagem, Viagem
+from .models import Destino, EstadoViagem, Viagem
 
 ESTADOS_NA_CRIACAO = [
     (EstadoViagem.PLANEJAMENTO, EstadoViagem.PLANEJAMENTO.label),
     (EstadoViagem.STAND_BY, EstadoViagem.STAND_BY.label),
 ]
+
+
+class DestinoForm(forms.ModelForm):
+    class Meta:
+        model = Destino
+        fields = ["pais", "cidade"]
+        labels = {"pais": "País", "cidade": "Cidade (opcional)"}
+
+    def full_clean(self):
+        super().full_clean()
+        for nome in self.errors:
+            if nome in self.fields:
+                self.fields[nome].widget.attrs["aria-invalid"] = "true"
 
 
 class ViagemForm(forms.ModelForm):
