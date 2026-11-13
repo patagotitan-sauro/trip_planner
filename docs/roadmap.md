@@ -31,7 +31,8 @@ Rules for every phase (from AGENTS.md):
 - [x] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24): add, edit and remove activities on the trip page.
 - [x] Use `classificar_viagem` (RN-02) for the national or international label.
 - [x] Delete planning and stand-by trips, after a confirmation page (RF-09). Completed trips cannot be deleted.
-- Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes (RF-08) go to the backlog below.
+- [x] Change a trip's state (RF-08): stand-by to planning (asks the dates), planning to stand-by, complete, reopen; each with a confirmation page. The itinerary is converted between dates and day numbers.
+- Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3.
 - Depends on: Phase 1.
 
 ## Phase 3: Expenses (`despesas`)
@@ -46,6 +47,7 @@ Rules for every phase (from AGENTS.md):
 - [ ] Register prepaid card and cash purchases.
 - [ ] Allocate balances to planned costs or expenses (RN-14, RN-16, RN-17).
 - [ ] Average cost per RN-22; close a trip with confirmation (RN-14).
+- [ ] When completing a trip, also close the unallocated balances (RN-14); the completion screen already exists (RF-08).
 - Depends on: Phase 3.
 
 ## Phase 5: Planning and history
@@ -69,7 +71,6 @@ Rules for every phase (from AGENTS.md):
 - [ ] CI runs `make check` on each push.
 
 ## Backlog (deferred, no phase yet)
-- [ ] Change a trip's state: stand-by back to planning; complete with confirmation (RF-08, RN-14). Completing ties to Phase 4.
 - [ ] Delete expenses and other posted data, in the screens that create them (RN-21).
 
 ## Out of scope for the first version (spec section 1)

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ rotulo }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<hgroup>
+  <h1>{{ rotulo }}</h1>
+  <p>{{ viagem.nome }} ({{ viagem.get_estado_display }})</p>
+</hgroup>
+
+<article>
+  {% if para == "stand_by" %}
+    <p>A viagem passa para <strong>Stand-by</strong>. As datas de início e fim serão apagadas e a viagem sai das telas de planejamento.</p>
+    {% if convertidas %}
+      <p>{{ convertidas }} atividade(s) do roteiro passarão da data para o número do dia (dia 1 é a data de início atual).</p>
+    {% endif %}
+    {% if mantidas %}
+      <p>{{ mantidas }} atividade(s) são anteriores à data de início e continuarão com a data, sem número de dia.</p>
+    {% endif %}
+  {% elif para == "concluida" %}
+    <p>A viagem passa para <strong>Concluída</strong> e vai para o histórico. Uma viagem concluída não pode ser excluída, mas pode ser reaberta.</p>
+  {% elif viagem.estado == "stand_by" %}
+    <p>A viagem volta para <strong>Em planejamento</strong>. Informe as datas de início e fim.</p>
+    {% if convertidas %}
+      <p>{{ convertidas }} atividade(s) do roteiro passarão do número do dia para a data (dia 1 é a data de início).</p>
+    {% endif %}
+  {% else %}
+    <p>A viagem volta para <strong>Em planejamento</strong>.</p>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form %}
+      {% for campo in form %}
+        <label>
+          {{ campo.label }}
+          {{ campo }}
+          {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+        </label>
+      {% endfor %}
+    {% endif %}
+    <div role="group">
+      <button type="submit">Confirmar</button>
+      <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+    </div>
+  </form>
+</article>
+{% endblock %}

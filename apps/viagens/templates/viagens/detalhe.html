@@ -24,6 +24,14 @@
   {% endif %}
 </p>
 
+{% if acoes %}
+<p>
+  {% for para, rotulo in acoes %}
+    <a href="{% url 'viagens:mudar_estado' viagem.pk para %}" role="button" class="outline">{{ rotulo }}</a>
+  {% endfor %}
+</p>
+{% endif %}
+
 <section>
   <h2>
     Destinos

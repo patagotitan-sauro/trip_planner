@@ -145,3 +145,28 @@ class AtividadeForm(CamposInvalidosMixin, forms.ModelForm):
     def save(self, commit=True):
         self.instance.viagem = self.viagem
         return super().save(commit=commit)
+
+
+class DatasDoPlanejamentoForm(CamposInvalidosMixin, forms.Form):
+    """Dates asked when a stand-by trip goes back to planning (RN-03)."""
+
+    data_inicio = forms.DateField(
+        label="Data de início",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    data_fim = forms.DateField(
+        label="Data de fim",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+
+    def clean(self):
+        dados = super().clean()
+        erros = validar_datas_da_viagem(
+            PLANEJAMENTO, dados.get("data_inicio"), dados.get("data_fim")
+        )
+        for campo, mensagem in erros.items():
+            if campo not in self.errors:
+                self.add_error(campo, mensagem)
+        return dados

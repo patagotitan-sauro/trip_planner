@@ -1,15 +1,32 @@
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from servicos.classificacao import classificar_viagem
-from servicos.viagens import agrupar_roteiro, agrupar_viagens, pode_excluir_viagem
+from servicos.viagens import (
+    CONCLUIDA,
+    PLANEJAMENTO,
+    STAND_BY,
+    agrupar_roteiro,
+    agrupar_viagens,
+    estados_de_destino,
+    nova_posicao_da_atividade,
+    pode_excluir_viagem,
+)
 
-from .forms import AtividadeForm, DestinoForm, ViagemForm
+from .forms import AtividadeForm, DatasDoPlanejamentoForm, DestinoForm, ViagemForm
 from .models import AtividadeRoteiro, Destino, Viagem
 
 TIPOS = {"nacional": "Nacionais", "internacional": "Internacionais"}
+
+ROTULOS_DA_MUDANCA = {
+    (STAND_BY, PLANEJAMENTO): "Voltar ao planejamento",
+    (PLANEJAMENTO, STAND_BY): "Mover para stand-by",
+    (PLANEJAMENTO, CONCLUIDA): "Concluir viagem",
+    (CONCLUIDA, PLANEJAMENTO): "Reabrir viagem",
+}
 
 
 def _tipo_da_viagem(viagem: Viagem) -> str | None:
@@ -74,6 +91,10 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
         "form": form,
         "roteiro": agrupar_roteiro(list(viagem.atividades.all()), viagem.estado),
         "pode_excluir": pode_excluir_viagem(viagem.estado),
+        "acoes": [
+            (para, ROTULOS_DA_MUDANCA[(viagem.estado, para)])
+            for para in estados_de_destino(viagem.estado)
+        ],
     }
     return render(request, "viagens/detalhe.html", contexto)
 
@@ -94,6 +115,66 @@ def excluir(request: HttpRequest, pk: int) -> HttpResponse:
         "despesas": viagem.despesas.count(),
     }
     return render(request, "viagens/excluir.html", contexto)
+
+
+@transaction.atomic
+def _aplicar_mudanca_de_estado(viagem: Viagem, para: str, datas: dict | None) -> None:
+    de = viagem.estado
+    referencia = viagem.data_inicio
+    if para == STAND_BY:
+        viagem.data_inicio = viagem.data_fim = None
+    elif de == STAND_BY:
+        viagem.data_inicio, viagem.data_fim = datas["data_inicio"], datas["data_fim"]
+        referencia = viagem.data_inicio
+    viagem.estado = para
+    viagem.save()
+
+    if STAND_BY in (de, para):
+        atividades = list(viagem.atividades.all())
+        for atividade in atividades:
+            atividade.data, atividade.dia = nova_posicao_da_atividade(
+                para, atividade.data, atividade.dia, referencia
+            )
+        AtividadeRoteiro.objects.bulk_update(atividades, ["data", "dia"])
+
+
+def mudar_estado(request: HttpRequest, pk: int, para: str) -> HttpResponse:
+    viagem = get_object_or_404(Viagem, pk=pk)
+    if para not in estados_de_destino(viagem.estado):
+        messages.error(request, "Essa mudança de situação não é permitida.")
+        return redirect("viagens:detalhe", pk=pk)
+
+    # Leaving stand-by needs the dates back (RN-03).
+    pede_datas = viagem.estado == STAND_BY
+    form = None
+    if pede_datas:
+        form = DatasDoPlanejamentoForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and (form is None or form.is_valid()):
+        _aplicar_mudanca_de_estado(viagem, para, form.cleaned_data if form else None)
+        messages.success(request, "Situação da viagem atualizada.")
+        return redirect("viagens:detalhe", pk=pk)
+
+    atividades = list(viagem.atividades.all())
+    if para == STAND_BY:
+        posicoes = [
+            nova_posicao_da_atividade(para, a.data, a.dia, viagem.data_inicio) for a in atividades
+        ]
+        convertidas = sum(1 for data, dia in posicoes if data is None and dia is not None)
+        mantidas = sum(
+            1 for a, (data, _) in zip(atividades, posicoes, strict=True) if a.data and data
+        )
+    else:
+        convertidas = sum(1 for a in atividades if a.dia is not None) if pede_datas else 0
+        mantidas = 0
+    contexto = {
+        "viagem": viagem,
+        "para": para,
+        "rotulo": ROTULOS_DA_MUDANCA[(viagem.estado, para)],
+        "form": form,
+        "convertidas": convertidas,
+        "mantidas": mantidas,
+    }
+    return render(request, "viagens/mudar_estado.html", contexto)
 
 
 @require_POST
