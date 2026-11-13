@@ -164,3 +164,92 @@ def test_list_links_to_create_and_edit(logado):
 
     assert reverse("viagens:criar") in html
     assert reverse("viagens:editar", args=[viagem.pk]) in html
+
+
+def test_create_form_shows_the_default_iof_rates_as_percentages(logado):
+    html = logado.get(reverse("viagens:criar")).content.decode()
+
+    assert 'name="aliquota_iof_credito"' in html
+    assert 'value="3,50"' in html
+    assert 'value="1,10"' in html
+
+
+def test_create_trip_without_rates_uses_the_defaults(logado):
+    logado.post(reverse("viagens:criar"), DADOS)
+
+    viagem = Viagem.objects.get()
+    assert viagem.aliquota_iof_credito == Decimal("0.0350")
+    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0.0110")
+
+
+def test_create_trip_with_custom_iof_rates_stores_fractions(logado):
+    dados = {**DADOS, "aliquota_iof_credito": "4,5", "aliquota_iof_pre_pago_dinheiro": "0"}
+
+    logado.post(reverse("viagens:criar"), dados)
+
+    viagem = Viagem.objects.get()
+    assert viagem.aliquota_iof_credito == Decimal("0.0450")
+    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0")
+
+
+def test_iof_rate_accepts_two_decimal_places_and_one_hundred_percent(logado):
+    dados = {**DADOS, "aliquota_iof_credito": "3,55", "aliquota_iof_pre_pago_dinheiro": "100"}
+
+    logado.post(reverse("viagens:criar"), dados)
+
+    viagem = Viagem.objects.get()
+    assert viagem.aliquota_iof_credito == Decimal("0.0355")
+    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("1")
+
+
+def test_invalid_iof_rates_are_rejected_with_a_clear_message(logado):
+    for invalido in ("101", "-1", "3,555", "abc"):
+        response = logado.post(
+            reverse("viagens:criar"), {**DADOS, "aliquota_iof_credito": invalido}
+        )
+
+        assert "percentual entre 0 e 100" in response.content.decode(), invalido
+    assert not Viagem.objects.exists()
+
+
+def test_edit_shows_and_changes_the_trip_iof_rates(logado):
+    viagem = Viagem.objects.create(
+        nome="Sul",
+        estado=EstadoViagem.STAND_BY,
+        aliquota_iof_credito=Decimal("0.0400"),
+    )
+    url = reverse("viagens:editar", args=[viagem.pk])
+
+    assert 'value="4,00"' in logado.get(url).content.decode()
+
+    logado.post(
+        url, {"nome": "Sul", "aliquota_iof_credito": "5", "aliquota_iof_pre_pago_dinheiro": ""}
+    )
+
+    viagem.refresh_from_db()
+    assert viagem.aliquota_iof_credito == Decimal("0.0500")
+    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0.0110")
+
+
+def test_editing_without_the_rate_fields_keeps_the_current_rates(logado):
+    viagem = Viagem.objects.create(
+        nome="Sul",
+        estado=EstadoViagem.STAND_BY,
+        aliquota_iof_credito=Decimal("0.0400"),
+    )
+
+    logado.post(reverse("viagens:editar", args=[viagem.pk]), {"nome": "Sul 2"})
+
+    viagem.refresh_from_db()
+    assert viagem.aliquota_iof_credito == Decimal("0.0400")
+
+
+def test_detail_shows_the_iof_rates_in_percent(logado):
+    viagem = Viagem.objects.create(
+        nome="Sul", estado=EstadoViagem.STAND_BY, aliquota_iof_credito=Decimal("0.0400")
+    )
+
+    html = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
+
+    assert "cartão de crédito 4,00%" in html
+    assert "cartão pré-pago e dinheiro 1,10%" in html

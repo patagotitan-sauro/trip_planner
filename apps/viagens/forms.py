@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 from django.db import transaction
 
@@ -26,6 +28,42 @@ class CamposInvalidosMixin:
         for nome in self.errors:
             if nome in self.fields:
                 self.fields[nome].widget.attrs["aria-invalid"] = "true"
+
+
+class PercentualField(forms.DecimalField):
+    """Shows and reads a percentage (3,5) while the value is kept as a fraction (0.035)."""
+
+    def prepare_value(self, value):
+        if isinstance(value, Decimal):
+            return (value * 100).quantize(Decimal("0.01"))
+        return value
+
+    def to_python(self, value):
+        valor = super().to_python(value)
+        return None if valor is None else valor / 100
+
+
+def _campo_percentual(rotulo: str, campo: str) -> PercentualField:
+    mensagem = "Informe um percentual entre 0 e 100, com até duas casas decimais."
+    return PercentualField(
+        label=rotulo,
+        initial=Viagem._meta.get_field(campo).get_default(),
+        required=False,
+        min_value=0,
+        max_value=1,
+        max_digits=5,
+        decimal_places=4,
+        localize=True,
+        widget=forms.TextInput(attrs={"inputmode": "decimal"}),
+        error_messages={
+            "invalid": mensagem,
+            "min_value": mensagem,
+            "max_value": mensagem,
+            "max_digits": mensagem,
+            "max_whole_digits": mensagem,
+            "max_decimal_places": mensagem,
+        },
+    )
 
 
 class DestinoForm(CamposInvalidosMixin, forms.ModelForm):
@@ -60,10 +98,23 @@ class ViagemForm(CamposInvalidosMixin, forms.ModelForm):
         widget=forms.TextInput(attrs={"inputmode": "decimal"}),
         error_messages={"min_value": "O orçamento não pode ser negativo."},
     )
+    # A blank rate keeps the current one (the default when creating); see RN-12.
+    aliquota_iof_credito = _campo_percentual("IOF no cartão de crédito (%)", "aliquota_iof_credito")
+    aliquota_iof_pre_pago_dinheiro = _campo_percentual(
+        "IOF no cartão pré-pago e dinheiro (%)", "aliquota_iof_pre_pago_dinheiro"
+    )
 
     class Meta:
         model = Viagem
-        fields = ["nome", "estado", "data_inicio", "data_fim", "orcamento"]
+        fields = [
+            "nome",
+            "estado",
+            "data_inicio",
+            "data_fim",
+            "orcamento",
+            "aliquota_iof_credito",
+            "aliquota_iof_pre_pago_dinheiro",
+        ]
         labels = {
             "nome": "Nome",
             "estado": "Situação",
@@ -75,7 +126,27 @@ class ViagemForm(CamposInvalidosMixin, forms.ModelForm):
             "data_fim": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
 
-    field_order = ["nome", "estado", "pais", "cidade", "data_inicio", "data_fim", "orcamento"]
+    field_order = [
+        "nome",
+        "estado",
+        "pais",
+        "cidade",
+        "data_inicio",
+        "data_fim",
+        "orcamento",
+        "aliquota_iof_credito",
+        "aliquota_iof_pre_pago_dinheiro",
+    ]
+
+    def _manter_se_vazio(self, campo: str):
+        valor = self.cleaned_data.get(campo)
+        return getattr(self.instance, campo) if valor is None else valor
+
+    def clean_aliquota_iof_credito(self):
+        return self._manter_se_vazio("aliquota_iof_credito")
+
+    def clean_aliquota_iof_pre_pago_dinheiro(self):
+        return self._manter_se_vazio("aliquota_iof_pre_pago_dinheiro")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

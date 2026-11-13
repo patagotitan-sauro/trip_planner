@@ -14,6 +14,7 @@
     {% endif %}
     {% if viagem.orcamento is not None %}| Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}{% endif %}
   </p>
+  <p><small>IOF: cartão de crédito {{ iof_credito|floatformat:"2" }}% | cartão pré-pago e dinheiro {{ iof_pre_pago_dinheiro|floatformat:"2" }}%</small></p>
 </hgroup>
 
 <p>

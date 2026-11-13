@@ -91,6 +91,8 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
         "form": form,
         "roteiro": agrupar_roteiro(list(viagem.atividades.all()), viagem.estado),
         "pode_excluir": pode_excluir_viagem(viagem.estado),
+        "iof_credito": viagem.aliquota_iof_credito * 100,
+        "iof_pre_pago_dinheiro": viagem.aliquota_iof_pre_pago_dinheiro * 100,
         "acoes": [
             (para, ROTULOS_DA_MUDANCA[(viagem.estado, para)])
             for para in estados_de_destino(viagem.estado)

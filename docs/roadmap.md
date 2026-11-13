@@ -40,7 +40,7 @@ Rules for every phase (from AGENTS.md):
 - [ ] Create and list expenses per trip: category, currency, amount, planned or actual, optional activity link (RN-24, RN-25).
 - [ ] Each credit-card expense keeps its own rate (RN-08).
 - [x] Tests: IOF amounts, rounding, 8-decimal rates.
-- [ ] IOF rates per trip in the trip form (RN-12), deferred from Phase 2. Schema change: confirm the plan first.
+- [x] IOF rates per trip in the trip form (RN-12), as percentages; blank keeps the current rate. Schema added in its own commit.
 - Depends on: Phase 2. The rules can be written during Phase 2.
 
 ## Phase 4: Balances (`saldos`) - needs schema confirmation
