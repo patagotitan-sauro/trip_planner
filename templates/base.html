@@ -1,0 +1,33 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block titulo %}Planejador de Viagens{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/pico.min.css' %}">
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul>
+        <li><a href="{% url 'viagens:inicio' %}"><strong>Planejador de Viagens</strong></a></li>
+      </ul>
+      {% if user.is_authenticated %}
+      <ul>
+        <li>{{ user.get_username }}</li>
+        <li>
+          <form method="post" action="{% url 'contas:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="secondary outline">Sair</button>
+          </form>
+        </li>
+      </ul>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>

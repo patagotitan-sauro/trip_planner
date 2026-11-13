@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block titulo %}Entrar - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<article style="max-width: 28rem; margin-inline: auto;">
+  <header><h1>Entrar</h1></header>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p role="alert"><small>Usuário ou senha incorretos. Tente novamente.</small></p>
+    {% endif %}
+    <label>
+      Usuário
+      <input type="text" name="username" autocomplete="username" autofocus required
+             value="{{ form.username.value|default:'' }}"
+             {% if form.errors %}aria-invalid="true"{% endif %}>
+    </label>
+    <label>
+      Senha
+      <input type="password" name="password" autocomplete="current-password" required
+             {% if form.errors %}aria-invalid="true"{% endif %}>
+    </label>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Entrar</button>
+  </form>
+</article>
+{% endblock %}

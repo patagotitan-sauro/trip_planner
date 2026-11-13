@@ -46,7 +46,10 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/wsgi.py` | Entry point gunicorn uses to serve the app. |
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
-| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations). |
+| `apps/contas/` | Login and logout with Django auth (no models). Accounts are created by the admin. |
+| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations). Also the placeholder home page until the trip list exists. |
+| `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
+| `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `apps/despesas/` | Expense categories and expenses (models and migrations). |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
@@ -62,7 +65,7 @@ The `__init__.py` files only mark these folders as Python packages.
 
 | File | Why it exists |
 |---|---|
-| `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary and open decisions. Requirements and business rules come next. |
+| `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary, business rules (RN-xx), open decisions and screen requirements (RF-xx). |
 | `docs/instruction.md` | Data model and how another Django project can reuse a copy of the SQLite database. Reference only, not a requirement of this project. |
 | `docs/roadmap.md` | Step-by-step plan for building the app, one phase per chat. |
 | `docs/project-files.md` | This file. |
@@ -83,6 +86,7 @@ The `__init__.py` files only mark these folders as Python packages.
 |---|---|
 | `AGENTS.md` | The single project guide for any AI assistant: rules, architecture, money and database rules. |
 | `.github/copilot-instructions.md` | Points GitHub Copilot to `AGENTS.md`. |
+| `.github/commit-instructions.md` | Commit message rules for Copilot (same as `AGENTS.md` section 16). |
 | `.github/skills/`, `.github/agents/` | The skills and agent roles for GitHub Copilot. Edit them here. |
 
 ## Editor

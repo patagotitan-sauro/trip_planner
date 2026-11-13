@@ -18,10 +18,10 @@ Rules for every phase (from AGENTS.md):
 - [x] Trip names: keep the old destination text.
 
 ## Phase 1: Access (new app `contas`)
-- [ ] Login with Django auth; accounts created only by the admin.
-- [ ] Every view requires login.
-- [ ] Base template in pt-BR.
-- [ ] Test: each URL without login redirects to login.
+- [x] Login with Django auth; accounts created only by the admin.
+- [x] Every view requires login (`LoginRequiredMiddleware`).
+- [x] Base template in pt-BR (Pico CSS) and a placeholder home page.
+- [x] Test: each URL without login redirects to login.
 - Depends on: Phase 0.
 
 ## Phase 2: Trips (`viagens`)
