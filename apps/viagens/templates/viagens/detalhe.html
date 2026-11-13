@@ -60,4 +60,39 @@
     </form>
   </details>
 </section>
+
+<section>
+  <h2>Roteiro</h2>
+
+  {% for grupo in roteiro %}
+    <h3>
+      {% if viagem.estado == "stand_by" %}
+        {% if grupo.chave %}Dia {{ grupo.chave }}{% else %}Sem dia{% endif %}
+      {% else %}
+        {% if grupo.chave %}{{ grupo.chave|date:"l, d/m/Y" }}{% else %}Sem data{% endif %}
+      {% endif %}
+    </h3>
+    {% for atividade in grupo.atividades %}
+      <article>
+        <p>
+          {% if atividade.hora %}<strong>{{ atividade.hora|time:"H:i" }}</strong>{% endif %}
+          {{ atividade.atividade }}
+          {% if atividade.local %}<small>({{ atividade.local }})</small>{% endif %}
+        </p>
+        {% if atividade.observacoes %}<p><small>{{ atividade.observacoes|linebreaksbr }}</small></p>{% endif %}
+        <div role="group">
+          <a href="{% url 'viagens:editar_atividade' viagem.pk atividade.pk %}" role="button" class="secondary outline">Editar</a>
+          <form method="post" action="{% url 'viagens:remover_atividade' viagem.pk atividade.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="secondary outline">Remover</button>
+          </form>
+        </div>
+      </article>
+    {% endfor %}
+  {% empty %}
+    <p>Nenhuma atividade ainda.</p>
+  {% endfor %}
+
+  <a href="{% url 'viagens:criar_atividade' viagem.pk %}" role="button" class="outline">Acrescentar atividade</a>
+</section>
 {% endblock %}

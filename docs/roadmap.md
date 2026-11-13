@@ -28,7 +28,7 @@ Rules for every phase (from AGENTS.md):
 - [x] List trips by state (stand-by, planning, completed grouped by year), with a national/international filter.
 - [x] Create and edit a trip: name, dates, optional budget.
 - [x] Destinations: country (default Brasil) and city, both required; the first one is asked when creating the trip, more come from an "Acrescentar novo destino" button on the trip page.
-- [ ] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24).
+- [x] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24): add, edit and remove activities on the trip page.
 - [x] Use `classificar_viagem` (RN-02) for the national or international label.
 - [x] Delete planning and stand-by trips, after a confirmation page (RF-09). Completed trips cannot be deleted.
 - Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes (RF-08) go to the backlog below.

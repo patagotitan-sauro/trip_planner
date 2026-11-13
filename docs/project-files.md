@@ -56,6 +56,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
 | `servicos/moeda.py` | Converts amounts to BRL and rounds money in one place. |
 | `servicos/classificacao.py` | Classifies a trip as national or international from its destinations (RN-02). |
+| `servicos/viagens.py` | Trip rules: grouping by state and year, date validation, who can be deleted, itinerary grouping and position (RN-03, RN-06, RN-18, RN-23). |
 | `servicos/importacao_antiga.py` | Mapping rules (trip status, destinations, expense situation) for the old database import. |
 | `apps/viagens/management/commands/importar_banco_antigo.py` | One-time import: reads an old `db.sqlite3` read-only and writes the new models in one transaction. |
 | `tests/` | Automated tests. |

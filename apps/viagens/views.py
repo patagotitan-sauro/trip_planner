@@ -4,10 +4,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from servicos.classificacao import classificar_viagem
-from servicos.viagens import agrupar_viagens, pode_excluir_viagem
+from servicos.viagens import agrupar_roteiro, agrupar_viagens, pode_excluir_viagem
 
-from .forms import DestinoForm, ViagemForm
-from .models import Destino, Viagem
+from .forms import AtividadeForm, DestinoForm, ViagemForm
+from .models import AtividadeRoteiro, Destino, Viagem
 
 TIPOS = {"nacional": "Nacionais", "internacional": "Internacionais"}
 
@@ -61,7 +61,7 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
-    viagem = get_object_or_404(Viagem.objects.prefetch_related("destinos"), pk=pk)
+    viagem = get_object_or_404(Viagem.objects.prefetch_related("destinos", "atividades"), pk=pk)
     form = DestinoForm(request.POST if request.method == "POST" else None)
     if form.is_valid():
         form.instance.viagem = viagem
@@ -69,7 +69,12 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
         messages.success(request, "Destino adicionado.")
         return redirect("viagens:detalhe", pk=viagem.pk)
     viagem.tipo = _tipo_da_viagem(viagem)
-    contexto = {"viagem": viagem, "form": form, "pode_excluir": pode_excluir_viagem(viagem.estado)}
+    contexto = {
+        "viagem": viagem,
+        "form": form,
+        "roteiro": agrupar_roteiro(list(viagem.atividades.all()), viagem.estado),
+        "pode_excluir": pode_excluir_viagem(viagem.estado),
+    }
     return render(request, "viagens/detalhe.html", contexto)
 
 
@@ -96,4 +101,38 @@ def remover_destino(request: HttpRequest, pk: int, destino_pk: int) -> HttpRespo
     destino = get_object_or_404(Destino, pk=destino_pk, viagem_id=pk)
     destino.delete()
     messages.success(request, "Destino removido.")
+    return redirect("viagens:detalhe", pk=pk)
+
+
+def _formulario_de_atividade(
+    request: HttpRequest, viagem: Viagem, atividade: AtividadeRoteiro | None, titulo: str
+) -> HttpResponse:
+    form = AtividadeForm(
+        request.POST if request.method == "POST" else None, instance=atividade, viagem=viagem
+    )
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Atividade salva.")
+        return redirect("viagens:detalhe", pk=viagem.pk)
+    contexto = {"form": form, "viagem": viagem, "titulo": titulo}
+    return render(request, "viagens/atividade_formulario.html", contexto)
+
+
+def criar_atividade(request: HttpRequest, pk: int) -> HttpResponse:
+    viagem = get_object_or_404(Viagem, pk=pk)
+    return _formulario_de_atividade(request, viagem, None, "Nova atividade")
+
+
+def editar_atividade(request: HttpRequest, pk: int, atividade_pk: int) -> HttpResponse:
+    atividade = get_object_or_404(
+        AtividadeRoteiro.objects.select_related("viagem"), pk=atividade_pk, viagem_id=pk
+    )
+    return _formulario_de_atividade(request, atividade.viagem, atividade, "Editar atividade")
+
+
+@require_POST
+def remover_atividade(request: HttpRequest, pk: int, atividade_pk: int) -> HttpResponse:
+    atividade = get_object_or_404(AtividadeRoteiro, pk=atividade_pk, viagem_id=pk)
+    atividade.delete()
+    messages.success(request, "Atividade removida.")
     return redirect("viagens:detalhe", pk=pk)
