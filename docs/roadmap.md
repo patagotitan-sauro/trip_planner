@@ -25,11 +25,12 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 0.
 
 ## Phase 2: Trips (`viagens`)
-- [ ] List trips by state (stand-by, planning, completed grouped by year).
-- [ ] Create and edit a trip: name, dates, optional budget.
+- [x] List trips by state (stand-by, planning, completed grouped by year), with a national/international filter.
+- [x] Create and edit a trip: name, dates, optional budget.
 - [ ] Destinations: country (django-countries select) and optional city.
 - [ ] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24).
-- [ ] Use `classificar_viagem` (RN-02) for the national or international label.
+- [x] Use `classificar_viagem` (RN-02) for the national or international label.
+- Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes and delete (RF-08, RF-09) go to the backlog below.
 - Depends on: Phase 1.
 
 ## Phase 3: Expenses (`despesas`)
@@ -37,6 +38,7 @@ Rules for every phase (from AGENTS.md):
 - [ ] Create and list expenses per trip: category, currency, amount, planned or actual, optional activity link (RN-24, RN-25).
 - [ ] Each credit-card expense keeps its own rate (RN-08).
 - [ ] Tests: IOF amounts, rounding, 8-decimal rates.
+- [ ] IOF rates per trip in the trip form (RN-12), deferred from Phase 2. Schema change: confirm the plan first.
 - Depends on: Phase 2. The rules can be written during Phase 2.
 
 ## Phase 4: Balances (`saldos`) - needs schema confirmation
@@ -64,6 +66,10 @@ Rules for every phase (from AGENTS.md):
 - [ ] Backup scheduled (cron) and copied off the machine.
 - [ ] Restore tested once.
 - [ ] CI runs `make check` on each push.
+
+## Backlog (deferred, no phase yet)
+- [ ] Change a trip's state: stand-by back to planning; complete with confirmation (RF-08, RN-14). Completing ties to Phase 4.
+- [ ] Delete trips and their data, with confirmation (RF-09, RN-21).
 
 ## Out of scope for the first version (spec section 1)
 Expense splitting, reservation checklists, charts and reports, per-category budgets, bank spread.
