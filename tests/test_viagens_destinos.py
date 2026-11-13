@@ -45,12 +45,35 @@ def test_add_destination_with_country_and_city(logado):
     assert (destino.pais.code, destino.cidade) == ("PT", "Lisboa")
 
 
-def test_add_destination_without_city(logado):
+def test_add_destination_without_city_is_rejected(logado):
     viagem = _viagem()
 
-    logado.post(reverse("viagens:detalhe", args=[viagem.pk]), {"pais": "JP", "cidade": ""})
+    response = logado.post(
+        reverse("viagens:detalhe", args=[viagem.pk]), {"pais": "JP", "cidade": ""}
+    )
 
-    assert viagem.destinos.get().cidade == ""
+    assert "Informe a cidade." in response.content.decode()
+    assert not viagem.destinos.exists()
+
+
+def test_add_destination_form_defaults_to_brasil_and_sits_behind_a_button(logado):
+    viagem = _viagem()
+
+    html = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
+
+    assert "Acrescentar novo destino" in html
+    assert '<option value="BR" selected>' in html
+    assert "<details>" in html
+
+
+def test_add_destination_form_opens_by_itself_when_it_has_errors(logado):
+    viagem = _viagem()
+
+    response = logado.post(
+        reverse("viagens:detalhe", args=[viagem.pk]), {"pais": "JP", "cidade": ""}
+    )
+
+    assert "<details open>" in response.content.decode()
 
 
 def test_add_destination_without_country_shows_error_and_saves_nothing(logado):

@@ -27,7 +27,7 @@ Rules for every phase (from AGENTS.md):
 ## Phase 2: Trips (`viagens`)
 - [x] List trips by state (stand-by, planning, completed grouped by year), with a national/international filter.
 - [x] Create and edit a trip: name, dates, optional budget.
-- [x] Destinations: country (django-countries select) and optional city, on the trip page.
+- [x] Destinations: country (default Brasil) and city, both required; the first one is asked when creating the trip, more come from an "Acrescentar novo destino" button on the trip page.
 - [ ] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24).
 - [x] Use `classificar_viagem` (RN-02) for the national or international label.
 - Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes and delete (RF-08, RF-09) go to the backlog below.

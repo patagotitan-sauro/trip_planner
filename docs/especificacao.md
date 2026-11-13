@@ -48,7 +48,7 @@ Fora da primeira versão:
 | Viagem | Plano com nome, destinos, roteiro, custos planejados e orçamento opcional. Tem data de início e data de fim, exceto em stand-by. |
 | Viagem possível | Viagem em planejamento, ainda não escolhida, com data de início e fim, usada para comparar opções. |
 | Stand-by | Viagem adiada ou congelada, sem datas de início e fim e fora das telas de planejamento. Pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). |
-| Destino | Local visitado em uma viagem, com país e, opcionalmente, cidade. |
+| Destino | Local visitado em uma viagem, com país e cidade. |
 | Dia do roteiro | Um dia da viagem com suas atividades. |
 | Categoria | Tipo de gasto (por exemplo, hospedagem, transporte, alimentação). |
 | Custo planejado | Valor estimado de uma categoria para uma viagem futura. Usado para planejar gastos e alocar saldos. |
@@ -67,7 +67,7 @@ Fora da primeira versão:
 
 **Viagem e destinos**
 
-- RN-01: cada destino tem um país, informado pelo código ISO 3166-1 alfa-2, e pode ter uma cidade dentro desse país.
+- RN-01: cada destino tem um país, informado pelo código ISO 3166-1 alfa-2, e uma cidade dentro desse país. Ao cadastrar um destino, o país (padrão: Brasil) e a cidade são sempre informados. Destinos importados do banco antigo podem estar sem cidade.
 - RN-02: uma viagem é internacional se pelo menos um destino tem país diferente de BR; as demais são nacionais. Viagens com destinos mistos são internacionais. A classificação é derivada dos destinos, serve como rótulo e filtro e não restringe moedas.
 - RN-03: toda viagem tem data de início e data de fim, exceto a viagem em stand-by, que pode não ter datas. A data de fim não pode ser anterior à data de início. A data de fim não conclui nem fecha a viagem: isso exige confirmação do usuário.
 - RN-04: despesas podem ter data anterior à data de início da viagem.
@@ -119,8 +119,8 @@ Cada requisito cita as regras de negócio em que se baseia. Todas as telas exige
 **Viagens**
 
 - RF-04: lista de viagens em três grupos: stand-by, em planejamento e concluídas, estas agrupadas por ano. Cada viagem mostra o rótulo nacional ou internacional, e a lista pode ser filtrada por ele (RN-02, RN-18, RN-23).
-- RF-05: criar e editar viagem com nome, datas de início e fim (opcionais em stand-by), orçamento opcional e alíquotas de IOF (RN-03, RN-12, RN-19).
-- RF-06: incluir e remover destinos de uma viagem, cada um com país e cidade opcional (RN-01).
+- RF-05: criar e editar viagem com nome, datas de início e fim (opcionais em stand-by), orçamento opcional e alíquotas de IOF. Ao criar, o usuário informa também o primeiro destino, com país (padrão: Brasil) e cidade (RN-01, RN-03, RN-12, RN-19).
+- RF-06: acrescentar outros destinos de uma viagem pelo botão "Acrescentar novo destino", sempre com país (padrão: Brasil) e cidade, e remover destinos (RN-01).
 - RF-07: montar o roteiro por data, ou por dia numerado em stand-by, com atividades em cada dia (RN-18, RN-24).
 - RF-08: mudar o estado da viagem: incluir uma viagem em stand-by no planejamento e marcar uma viagem como concluída, esta somente após confirmação do usuário (RN-03, RN-14, RN-18).
 - RF-09: excluir viagens e dados lançados, inclusive os de outro membro (RN-21).

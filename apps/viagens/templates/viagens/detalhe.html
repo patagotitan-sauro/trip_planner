@@ -42,16 +42,19 @@
     <p>Nenhum destino ainda.</p>
   {% endfor %}
 
-  <form method="post">
-    {% csrf_token %}
-    {% for campo in form %}
-      <label>
-        {{ campo.label }}
-        {{ campo }}
-        {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
-      </label>
-    {% endfor %}
-    <button type="submit">Adicionar destino</button>
-  </form>
+  <details{% if form.errors %} open{% endif %}>
+    <summary role="button" class="outline">Acrescentar novo destino</summary>
+    <form method="post">
+      {% csrf_token %}
+      {% for campo in form %}
+        <label>
+          {{ campo.label }}
+          {{ campo }}
+          {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+        </label>
+      {% endfor %}
+      <button type="submit">Adicionar destino</button>
+    </form>
+  </details>
 </section>
 {% endblock %}

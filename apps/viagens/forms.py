@@ -1,8 +1,11 @@
 from django import forms
+from django.db import transaction
 
 from servicos.viagens import PLANEJAMENTO, STAND_BY, validar_datas_da_viagem
 
 from .models import Destino, EstadoViagem, Viagem
+
+PAIS_PADRAO = "BR"
 
 ESTADOS_NA_CRIACAO = [
     (EstadoViagem.PLANEJAMENTO, EstadoViagem.PLANEJAMENTO.label),
@@ -14,7 +17,14 @@ class DestinoForm(forms.ModelForm):
     class Meta:
         model = Destino
         fields = ["pais", "cidade"]
-        labels = {"pais": "País", "cidade": "Cidade (opcional)"}
+        labels = {"pais": "País", "cidade": "Cidade"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["pais"].initial = PAIS_PADRAO
+        # The model keeps city optional for old imported data; new destinations always need one.
+        self.fields["cidade"].required = True
+        self.fields["cidade"].error_messages["required"] = "Informe a cidade."
 
     def full_clean(self):
         super().full_clean()
@@ -24,6 +34,13 @@ class DestinoForm(forms.ModelForm):
 
 
 class ViagemForm(forms.ModelForm):
+    # First destination, asked only when creating; more are added on the trip page.
+    pais = Destino._meta.get_field("pais").formfield(label="País", initial=PAIS_PADRAO)
+    cidade = forms.CharField(
+        label="Cidade",
+        max_length=100,
+        error_messages={"required": "Informe a cidade."},
+    )
     orcamento = forms.DecimalField(
         label="Orçamento (R$)",
         required=False,
@@ -49,14 +66,28 @@ class ViagemForm(forms.ModelForm):
             "data_fim": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
 
+    field_order = ["nome", "estado", "pais", "cidade", "data_inicio", "data_fim", "orcamento"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Changing the state of an existing trip has its own screen (RF-08).
+        # Changing the state of an existing trip has its own screen (RF-08);
+        # destinations of an existing trip are managed on its page.
         if self.instance.pk:
-            del self.fields["estado"]
+            del self.fields["estado"], self.fields["pais"], self.fields["cidade"]
         else:
             self.fields["estado"].choices = ESTADOS_NA_CRIACAO
             self.fields["estado"].initial = PLANEJAMENTO
+
+    def save(self, commit=True):
+        with transaction.atomic():
+            viagem = super().save(commit=commit)
+            if commit and "pais" in self.fields:
+                Destino.objects.create(
+                    viagem=viagem,
+                    pais=self.cleaned_data["pais"],
+                    cidade=self.cleaned_data["cidade"],
+                )
+        return viagem
 
     def clean(self):
         dados = super().clean()

@@ -8,6 +8,8 @@ from apps.viagens.models import EstadoViagem, Viagem
 DADOS = {
     "nome": "Argentina",
     "estado": "planejamento",
+    "pais": "AR",
+    "cidade": "Buenos Aires",
     "data_inicio": "2027-02-01",
     "data_fim": "2027-02-10",
     "orcamento": "",
@@ -20,6 +22,35 @@ def test_create_form_offers_only_planning_and_stand_by(logado):
     assert 'value="concluida"' not in html
     assert 'value="planejamento"' in html
     assert 'value="stand_by"' in html
+
+
+def test_create_form_asks_for_country_and_city_with_brasil_as_default(logado):
+    html = logado.get(reverse("viagens:criar")).content.decode()
+
+    assert 'name="pais"' in html
+    assert 'name="cidade"' in html
+    assert '<option value="BR" selected>' in html
+
+
+def test_create_trip_also_creates_its_first_destination(logado):
+    logado.post(reverse("viagens:criar"), DADOS)
+
+    destino = Viagem.objects.get().destinos.get()
+    assert (destino.pais.code, destino.cidade) == ("AR", "Buenos Aires")
+
+
+def test_create_trip_without_city_is_rejected_and_saves_nothing(logado):
+    response = logado.post(reverse("viagens:criar"), {**DADOS, "cidade": ""})
+
+    assert "Informe a cidade." in response.content.decode()
+    assert not Viagem.objects.exists()
+
+
+def test_create_trip_without_country_is_rejected_and_saves_nothing(logado):
+    response = logado.post(reverse("viagens:criar"), {**DADOS, "pais": ""})
+
+    assert response.status_code == 200
+    assert not Viagem.objects.exists()
 
 
 def test_create_planning_trip_with_dates_and_no_budget(logado):
@@ -107,6 +138,8 @@ def test_edit_form_has_no_state_field_and_shows_current_values(logado):
     html = logado.get(reverse("viagens:editar", args=[viagem.pk])).content.decode()
 
     assert 'name="estado"' not in html
+    assert 'name="pais"' not in html
+    assert 'name="cidade"' not in html
     assert 'value="Japão"' in html
 
 
