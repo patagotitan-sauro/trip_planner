@@ -93,7 +93,7 @@ Fora da primeira versão:
 - RN-15: o custo planejado inclui o IOF estimado pela forma de pagamento prevista.
 - RN-16: ao lançar uma despesa em uma moeda para a qual há saldo, o sistema pergunta se a despesa será paga com o saldo ou com outra forma de pagamento (por exemplo, cartão de crédito). A resposta define se o IOF é cobrado naquele lançamento.
 - RN-17: saldos podem existir em mais de uma moeda. Cada saldo tem uma moeda e um custo em BRL, que inclui o IOF pago na compra ou na carga.
-- RN-18: a viagem está em um de três estados: stand-by, em planejamento ou concluída. A viagem em stand-by não tem data obrigatória, não aparece nas telas de planejamento e pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). Ela volta ao planejamento quando o usuário a inclui nele.
+- RN-18: a viagem está em um de três estados: stand-by, em planejamento ou concluída. A viagem em stand-by não tem data obrigatória, não aparece nas telas de planejamento e pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). Ela volta ao planejamento quando o usuário a inclui nele. As mudanças de estado permitidas são: stand-by para em planejamento; em planejamento para stand-by ou para concluída; concluída para em planejamento (reabrir). Uma viagem em stand-by só é concluída depois de voltar ao planejamento. Ao ir para stand-by, as datas da viagem são apagadas e a data de cada atividade vira o número do dia (dia 1 é a data de início); atividades anteriores à data de início mantêm a data. Ao voltar ao planejamento, o usuário informa as datas de início e fim, e o dia N de cada atividade vira a data de início mais N − 1 dias.
 - RN-19: orçamento é opcional. Os custos planejados são somados à medida que a pesquisa avança. Sem orçamento, não há valor restante a exibir.
 - RN-20: uma despesa planejada pode ser marcada como cancelável, com a data limite de cancelamento informada pelo usuário.
 - RN-21: qualquer membro autenticado pode excluir dados lançados por outro membro.
@@ -122,7 +122,7 @@ Cada requisito cita as regras de negócio em que se baseia. Todas as telas exige
 - RF-05: criar e editar viagem com nome, datas de início e fim (opcionais em stand-by), orçamento opcional e alíquotas de IOF. Ao criar, o usuário informa também o primeiro destino, com país (padrão: Brasil) e cidade (RN-01, RN-03, RN-12, RN-19).
 - RF-06: acrescentar outros destinos de uma viagem pelo botão "Acrescentar novo destino", sempre com país (padrão: Brasil) e cidade, e remover destinos (RN-01).
 - RF-07: montar o roteiro por data, ou por dia numerado em stand-by, com atividades em cada dia (RN-18, RN-24).
-- RF-08: mudar o estado da viagem: incluir uma viagem em stand-by no planejamento e marcar uma viagem como concluída, esta somente após confirmação do usuário (RN-03, RN-14, RN-18).
+- RF-08: mudar o estado da viagem pela página da viagem, com uma página de confirmação que explica o efeito: mover para stand-by, voltar ao planejamento (informando as datas), concluir e reabrir. A conclusão exige confirmação do usuário (RN-03, RN-14, RN-18).
 - RF-09: excluir uma viagem em planejamento ou em stand-by, somente após confirmação do usuário, que vê quantos destinos, atividades e despesas serão apagados com ela. Viagens concluídas ficam no histórico e não podem ser excluídas. Qualquer membro pode excluir, inclusive o que foi lançado por outro (RN-06, RN-21).
 
 **Despesas**

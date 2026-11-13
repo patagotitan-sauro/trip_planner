@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date, time
+from datetime import date, time, timedelta
 from typing import Protocol
 
 STAND_BY = "stand_by"
@@ -56,6 +56,37 @@ def validar_datas_da_viagem(
 def pode_excluir_viagem(estado: str) -> bool:
     """RN-06: completed trips stay in the history; the others can be deleted."""
     return estado in (STAND_BY, PLANEJAMENTO)
+
+
+# RN-18: a stand-by trip is completed only after going back to planning.
+TRANSICOES: dict[str, tuple[str, ...]] = {
+    STAND_BY: (PLANEJAMENTO,),
+    PLANEJAMENTO: (STAND_BY, CONCLUIDA),
+    CONCLUIDA: (PLANEJAMENTO,),
+}
+
+
+def estados_de_destino(estado: str) -> tuple[str, ...]:
+    return TRANSICOES.get(estado, ())
+
+
+def nova_posicao_da_atividade(
+    para: str, data: date | None, dia: int | None, data_inicio: date | None
+) -> tuple[date | None, int | None]:
+    """RN-18: convert an activity between date and numbered day when crossing stand-by.
+
+    `data_inicio` is the start date the day numbers refer to: the old one when going to
+    stand-by and the new one when leaving it. Day 1 is the start date.
+    """
+    if data_inicio is None:
+        return data, dia
+    if para == STAND_BY and data is not None:
+        novo_dia = (data - data_inicio).days + 1
+        # An activity before the start date has no valid day, so it keeps its date.
+        return (None, novo_dia) if novo_dia >= 1 else (data, dia)
+    if para == PLANEJAMENTO and dia is not None:
+        return data_inicio + timedelta(days=dia - 1), None
+    return data, dia
 
 
 def validar_posicao_da_atividade(estado: str, data: date | None, dia: int | None) -> dict[str, str]:

@@ -158,3 +158,71 @@ def test_activities_missing_the_day_or_date_form_a_last_group():
 
 def test_empty_itinerary_has_no_groups():
     assert viagens.agrupar_roteiro([], "planejamento") == []
+
+
+def test_allowed_state_changes():
+    assert viagens.estados_de_destino("stand_by") == ("planejamento",)
+    assert viagens.estados_de_destino("planejamento") == ("stand_by", "concluida")
+    assert viagens.estados_de_destino("concluida") == ("planejamento",)
+
+
+def test_stand_by_trip_cannot_be_completed_directly():
+    assert "concluida" not in viagens.estados_de_destino("stand_by")
+
+
+def test_unknown_state_has_no_destinations():
+    assert viagens.estados_de_destino("cancelada") == ()
+
+
+INICIO = date(2027, 3, 10)
+
+
+def test_date_becomes_day_number_when_going_to_stand_by():
+    assert viagens.nova_posicao_da_atividade("stand_by", date(2027, 3, 10), None, INICIO) == (
+        None,
+        1,
+    )
+    assert viagens.nova_posicao_da_atividade("stand_by", date(2027, 3, 14), None, INICIO) == (
+        None,
+        5,
+    )
+
+
+def test_activity_before_the_start_date_keeps_its_date_in_stand_by():
+    posicao = viagens.nova_posicao_da_atividade("stand_by", date(2027, 3, 9), None, INICIO)
+
+    assert posicao == (date(2027, 3, 9), None)
+
+
+def test_day_number_becomes_date_when_going_back_to_planning():
+    novo_inicio = date(2028, 1, 30)
+
+    assert viagens.nova_posicao_da_atividade("planejamento", None, 1, novo_inicio) == (
+        novo_inicio,
+        None,
+    )
+    assert viagens.nova_posicao_da_atividade("planejamento", None, 4, novo_inicio) == (
+        date(2028, 2, 2),
+        None,
+    )
+
+
+def test_activity_with_only_a_date_keeps_it_when_going_back_to_planning():
+    antiga = date(2099, 1, 1)
+
+    assert viagens.nova_posicao_da_atividade("planejamento", antiga, None, INICIO) == (antiga, None)
+
+
+def test_activities_stay_as_they_are_when_the_trip_has_no_start_date():
+    assert viagens.nova_posicao_da_atividade("stand_by", date(2027, 3, 14), None, None) == (
+        date(2027, 3, 14),
+        None,
+    )
+
+
+def test_going_to_stand_by_and_back_restores_the_same_date():
+    em_stand_by = viagens.nova_posicao_da_atividade("stand_by", date(2027, 3, 12), None, INICIO)
+
+    volta = viagens.nova_posicao_da_atividade("planejamento", *em_stand_by, INICIO)
+
+    assert volta == (date(2027, 3, 12), None)
