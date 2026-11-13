@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ titulo }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<hgroup>
+  <h1>{{ titulo }}</h1>
+  <p>{{ viagem.nome }}</p>
+</hgroup>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for erro in form.non_field_errors %}<p role="alert"><small>{{ erro }}</small></p>{% endfor %}
+  {% for campo in form %}
+    <label>
+      {{ campo.label }}
+      {{ campo }}
+      {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+    </label>
+  {% endfor %}
+  <p><small>O IOF é calculado ao salvar, conforme a moeda e a forma de pagamento.</small></p>
+  <div role="group">
+    <button type="submit">Salvar</button>
+    <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

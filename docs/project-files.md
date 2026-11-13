@@ -51,7 +51,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
-| `apps/despesas/` | Expense categories and expenses (models and migrations). |
+| `apps/despesas/` | Expense categories and expenses: models and migrations, plus the screens to create, edit and delete an expense of a trip (the IOF and BRL value are computed on save by `servicos/despesas.py`). |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
 | `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, IOF by payment method (RN-09 to RN-11), allowed payment methods by currency (RN-10) and totals. |
