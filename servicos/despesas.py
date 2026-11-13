@@ -117,3 +117,8 @@ def total_em_brl(despesas: Iterable[ComValoresEmBrl]) -> Decimal:
             raise ValueError("Despesa sem valor em BRL não pode entrar no total.")
         total += despesa.valor_brl + despesa.valor_iof
     return total
+
+
+def total_iof(despesas: Iterable[ComValoresEmBrl]) -> Decimal:
+    """The IOF part of `total_em_brl`."""
+    return sum((despesa.valor_iof for despesa in despesas), Decimal(0))

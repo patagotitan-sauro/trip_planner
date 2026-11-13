@@ -108,6 +108,7 @@
 <section>
   <h2>Despesas</h2>
   <div role="group">
+    <a href="{% url 'despesas:lista' viagem.pk %}" role="button">Ver despesas</a>
     <a href="{% url 'despesas:criar' viagem.pk %}?situacao=planejada" role="button" class="outline">Novo custo planejado</a>
     <a href="{% url 'despesas:criar' viagem.pk %}?situacao=realizada" role="button" class="outline">Nova despesa realizada</a>
   </div>

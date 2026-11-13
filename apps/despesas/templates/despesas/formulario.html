@@ -21,7 +21,7 @@
   <p><small>O IOF é calculado ao salvar, conforme a moeda e a forma de pagamento.</small></p>
   <div role="group">
     <button type="submit">Salvar</button>
-    <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+    <a href="{% url 'despesas:lista' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
   </div>
 </form>
 {% endblock %}

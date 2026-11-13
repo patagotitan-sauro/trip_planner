@@ -67,7 +67,7 @@ def test_brl_expense_is_saved_without_iof_and_with_rate_one(logado, viagem, cate
     response = _criar(logado, viagem, _dados(categoria))
 
     assert response.status_code == 302
-    assert response.url == reverse("viagens:detalhe", args=[viagem.pk])
+    assert response.url == reverse("despesas:lista", args=[viagem.pk])
     despesa = Despesa.objects.get()
     assert despesa.viagem == viagem
     assert (despesa.cotacao, despesa.valor_brl) == (Decimal(1), Decimal("100.00"))

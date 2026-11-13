@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block titulo %}Despesas de {{ viagem.nome }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<hgroup>
+  <h1>Despesas</h1>
+  <p>{{ viagem.nome }}</p>
+</hgroup>
+
+<p>
+  <a href="{% url 'despesas:criar' viagem.pk %}?situacao=planejada" role="button" class="outline">Novo custo planejado</a>
+  <a href="{% url 'despesas:criar' viagem.pk %}?situacao=realizada" role="button" class="outline">Nova despesa realizada</a>
+  <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Voltar à viagem</a>
+</p>
+
+{% for grupo in grupos %}
+<section>
+  <h2>{{ grupo.titulo }}</h2>
+  {% if grupo.despesas %}
+    <div class="overflow-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Valor original</th>
+            <th>Pagamento</th>
+            <th>Valor em R$</th>
+            <th>IOF em R$</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for despesa in grupo.despesas %}
+          <tr>
+            <td>{% if despesa.data %}{{ despesa.data|date:"d/m/Y" }}{% endif %}</td>
+            <td>
+              {{ despesa.descricao }}
+              {% if despesa.atividade %}<br><small>Atividade: {{ despesa.atividade }}</small>{% endif %}
+            </td>
+            <td>{{ despesa.categoria }}</td>
+            <td>
+              {{ despesa.valor_original|floatformat:"2g" }} {{ despesa.moeda }}
+              {% if despesa.moeda != "BRL" %}<br><small>cotação {{ despesa.cotacao|floatformat:"4" }}</small>{% endif %}
+            </td>
+            <td>{{ despesa.get_forma_pagamento_display }}</td>
+            <td>{{ despesa.valor_brl|floatformat:"2g" }}</td>
+            <td>{{ despesa.valor_iof|floatformat:"2g" }}</td>
+            <td>
+              <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
+              <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>Total: R$ {{ grupo.total|floatformat:"2g" }}</strong>
+      <small>(inclui R$ {{ grupo.iof|floatformat:"2g" }} de IOF)</small>
+    </p>
+  {% else %}
+    <p>Nenhum lançamento ainda.</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

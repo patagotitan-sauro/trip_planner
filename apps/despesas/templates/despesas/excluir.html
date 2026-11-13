@@ -11,7 +11,7 @@
     {% csrf_token %}
     <div role="group">
       <button type="submit" class="perigo">Excluir definitivamente</button>
-      <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+      <a href="{% url 'despesas:lista' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
     </div>
   </form>
 </article>

@@ -167,6 +167,16 @@ def test_total_of_nothing_is_zero():
     assert despesas.total_em_brl([]) == Decimal(0)
 
 
+def test_iof_total_adds_only_the_iof():
+    itens = [
+        DespesaFalsa(Decimal("100.00"), Decimal("3.50")),
+        DespesaFalsa(Decimal("10.00"), Decimal("0.11")),
+    ]
+
+    assert despesas.total_iof(itens) == Decimal("3.61")
+    assert despesas.total_iof([]) == Decimal(0)
+
+
 def test_total_rejects_an_expense_without_brl_amount():
     with pytest.raises(ValueError, match="sem valor em BRL"):
         despesas.total_em_brl([DespesaFalsa(None, Decimal("0.00"))])
