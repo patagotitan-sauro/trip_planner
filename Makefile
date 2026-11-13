@@ -2,7 +2,7 @@
 COMPOSE ?= docker compose
 EXEC := $(COMPOSE) exec app
 
-.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up lint test check
+.PHONY: help init bootstrap up down logs shell migrations migrate superuser prod-up backup restore lint test check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
@@ -39,6 +39,12 @@ superuser: ## Create an admin user
 
 prod-up: ## Production-like run, without the dev override
 	$(COMPOSE) -f compose.yaml up -d --build
+
+backup: ## Back up the database (prod: make backup COMPOSE="docker compose -f compose.yaml")
+	COMPOSE="$(COMPOSE)" bash scripts/backup.sh
+
+restore: ## Restore the database: make restore FILE=path/to/backup.sqlite3 (asks SIM)
+	COMPOSE="$(COMPOSE)" bash scripts/restore.sh "$(FILE)"
 
 lint: ## Check style, security rules and float-for-money (changes nothing)
 	$(EXEC) ruff check .
