@@ -12,9 +12,9 @@ A family web app to study possible trips and decide which one to take (destinati
 
 ## 2. Current state (update as the repo grows)
 
-Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, empty `apps/`, `servicos/`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `.pre-commit-config.yaml`, `docs/project-files.md`, `docs/especificacao.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests), `.github/workflows/ci.yml` (runs `make check` on push and pull request), `.github/skills/`, `.github/agents/` (skills and agent roles), `.vscode/`, `.devcontainer/`.
+Exists: `.gitignore`, `.editorconfig`, `requirements.txt`, `requirements-dev.txt`, `Dockerfile`, `docker/entrypoint.sh`, `.dockerignore`, `.env.example`, `compose.yaml`, `compose.override.yaml`, `Makefile`, the Django project (`manage.py`, `config/`, `apps/viagens/` and `apps/despesas/` with models and migrations, the one-time import command `importar_banco_antigo`, `servicos/` with `moeda.py`, `importacao_antiga.py` and `classificacao.py`, `servicos/integracoes/`, `tests/`), `ruff.toml`, `pytest.ini`, `scripts/check_money_floats.py`, `scripts/backup.sh`, `scripts/restore.sh`, `.pre-commit-config.yaml`, `docs/project-files.md`, `docs/especificacao.md`, `make lint` / `make test` / `make check`, `tests/test_settings.py` (settings smoke tests), `tests/test_viagens_models.py` and `tests/test_despesas_models.py` (model tests), `tests/test_moeda.py`, `tests/test_classificacao.py`, `tests/test_importacao_antiga.py` and `tests/test_importar_banco_antigo.py` (conversion and import tests), `.github/workflows/ci.yml` (runs `make check` on push and pull request), `.github/skills/`, `.github/agents/` (skills and agent roles), `.vscode/`, `.devcontainer/`.
 
-Not created yet: any Django app, tests for business rules. Do not assume they exist or run commands that depend on them.
+Not created yet: the `contas` app, business rules in `servicos/` and their tests. Do not assume they exist or run commands that depend on them.
 
 ## 3. Communication style
 
@@ -48,6 +48,8 @@ The `Makefile` is the single entry point; run `make help` for the list. Everythi
 | `make logs` / `make shell` | Follow logs / open a shell in the container |
 | `make migrations` / `make migrate` | Create / apply migrations |
 | `make superuser` | Create an admin user |
+| `make backup` | Back up the SQLite database to `~/backups/trip-planner` (see `scripts/backup.sh`) |
+| `make restore FILE=...` | Restore the database from a backup; asks for confirmation (see `scripts/restore.sh`) |
 | `make prod-up` | Production-like run, without the dev override |
 | `make lint` | `ruff check`, `ruff format --check` and the float-for-money check; changes nothing |
 | `make test` | Run pytest |
@@ -55,7 +57,7 @@ The `Makefile` is the single entry point; run `make help` for the list. Everythi
 
 The float check fails on `float` used for money in `apps/` and `servicos/` (escape hatch: `# allow-float: reason`). `pre-commit run --all-files` runs the same lint and float checks as the commit hook (host tool, needs the container running; `pre-commit install` once per clone).
 
-Backup commands arrive later. Do not assume they exist until "Current state" lists them.
+Backup and restore exist (`make backup`, `make restore FILE=...`). Do not assume other commands exist until "Current state" lists them.
 
 ## 6. Language and naming
 
@@ -105,7 +107,7 @@ Do not over-engineer. Use a pattern only when it solves a real problem present n
 
 ## 10. Testing
 
-pytest and pytest-django are in the dev image and configured in `pytest.ini` (tests live in `tests/`). Only the settings smoke tests exist so far.
+pytest and pytest-django are in the dev image and configured in `pytest.ini` (tests live in `tests/`). Tests cover settings, models, currency conversion and the import mapping.
 
 - Test business rules in `servicos/` with unit tests first. They need no database or HTTP.
 - Cover edge cases for money: zero, negative values, rounding, currencies with different decimal places, and splits that do not divide evenly.

@@ -33,6 +33,8 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | File | Why it exists |
 |---|---|
 | `Makefile` | One entry point for common tasks (`make up`, `make migrate`, `make shell`). Run `make help` for the list. |
+| `scripts/backup.sh` | Copies the SQLite database with the backup API, checks it and keeps the latest copies in `~/backups/trip-planner`. |
+| `scripts/restore.sh` | Restores a checked backup after typing `SIM`, keeping a safety backup of the current database first. |
 
 ## Django project
 
@@ -44,8 +46,14 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/wsgi.py` | Entry point gunicorn uses to serve the app. |
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
+| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations). |
+| `apps/despesas/` | Expense categories and expenses (models and migrations). |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
+| `servicos/moeda.py` | Converts amounts to BRL and rounds money in one place. |
+| `servicos/classificacao.py` | Classifies a trip as national or international from its destinations (RN-02). |
+| `servicos/importacao_antiga.py` | Mapping rules (trip status, destinations, expense situation) for the old database import. |
+| `apps/viagens/management/commands/importar_banco_antigo.py` | One-time import: reads an old `db.sqlite3` read-only and writes the new models in one transaction. |
 | `tests/` | Automated tests. |
 
 The `__init__.py` files only mark these folders as Python packages.
@@ -55,6 +63,7 @@ The `__init__.py` files only mark these folders as Python packages.
 | File | Why it exists |
 |---|---|
 | `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary and open decisions. Requirements and business rules come next. |
+| `docs/instruction.md` | Data model and how another Django project can reuse a copy of the SQLite database. Reference only, not a requirement of this project. |
 | `docs/project-files.md` | This file. |
 
 ## Quality
