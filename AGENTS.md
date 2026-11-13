@@ -64,7 +64,7 @@ Backup and restore exist (`make backup`, `make restore FILE=...`). Do not assume
 
 - User-facing text (labels, messages, templates): Brazilian Portuguese.
 - Code identifiers, comments, docstrings, commit messages: English.
-- Domain terms from the specification keep their spelling, for example the planned Django app names (`contas`, `viagens`, `planejamento`, `despesas`, `relatorios`).
+- Domain terms from the specification keep their spelling, for example the planned Django app names (`contas` for login only, `viagens`, `planejamento`, `despesas`, `saldos`, `relatorios`).
 - Follow PEP 8 and use type hints on new functions.
 
 ## 7. Architecture (planned)

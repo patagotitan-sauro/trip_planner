@@ -12,10 +12,10 @@ Rules for every phase (from AGENTS.md):
 - [x] Data layer: viagens and despesas models, IOF and conversion rules, classification, one-time import, backup and restore scripts.
 
 ## Phase 0: Confirm (no code)
-- [ ] Write the RF-xx screen requirements in docs/especificacao.md (only RN-xx exist).
-- [ ] Decide the name of the `contas` app (A: login only, balances in `saldos`; B: `contas` holds balances too). Recommendation: A.
-- [ ] Japão: city and status (stand-by or planning). Owner decides.
-- [ ] Trip names: keep the old destination text or rename.
+- [x] Write the RF-xx screen requirements in docs/especificacao.md (section 7; owner to review).
+- [x] `contas` app: option A, login only; balances in `saldos`.
+- [x] Japão: stand-by, country only (no city), as the import already does.
+- [x] Trip names: keep the old destination text.
 
 ## Phase 1: Access (new app `contas`)
 - [ ] Login with Django auth; accounts created only by the admin.

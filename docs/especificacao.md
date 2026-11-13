@@ -1,6 +1,6 @@
 # Especificação
 
-Primeira versão, enxuta. As regras de negócio (`RN-xx`) da primeira versão estão na seção 5. Os requisitos (`RF-xx`) serão acrescentados em uma segunda etapa.
+Primeira versão, enxuta. As regras de negócio (`RN-xx`) da primeira versão estão na seção 5. Os requisitos de tela (`RF-xx`) estão na seção 7.
 
 ## 1. Objetivo e escopo
 
@@ -105,3 +105,40 @@ Fora da primeira versão:
 ## 6. Decisões em aberto
 
 - Nenhuma decisão em aberto no momento.
+
+## 7. Requisitos funcionais
+
+Cada requisito cita as regras de negócio em que se baseia. Todas as telas exigem usuário autenticado (RF-02).
+
+**Acesso**
+
+- RF-01: o usuário entra com nome de usuário e senha. As contas são criadas pelo administrador (seção 2).
+- RF-02: qualquer tela, sem login, redireciona para a tela de login.
+
+**Viagens**
+
+- RF-03: lista de viagens em três grupos: stand-by, em planejamento e concluídas, estas agrupadas por ano. Cada viagem mostra o rótulo nacional ou internacional, e a lista pode ser filtrada por ele (RN-02, RN-18, RN-23).
+- RF-04: criar e editar viagem com nome, datas de início e fim (opcionais em stand-by), orçamento opcional e alíquotas de IOF (RN-03, RN-12, RN-19).
+- RF-05: incluir e remover destinos de uma viagem, cada um com país e cidade opcional (RN-01).
+- RF-06: montar o roteiro por data, ou por dia numerado em stand-by, com atividades em cada dia (RN-18, RN-24).
+- RF-07: mudar o estado da viagem: incluir uma viagem em stand-by no planejamento e marcar uma viagem como concluída, esta somente após confirmação do usuário (RN-03, RN-14, RN-18).
+- RF-08: excluir viagens e dados lançados, inclusive os de outro membro (RN-21).
+
+**Despesas**
+
+- RF-09: lançar custo planejado com categoria, moeda, valor e forma de pagamento prevista, com IOF estimado, e marcá-lo como cancelável com data limite (RN-15, RN-20, RN-25).
+- RF-10: lançar despesa realizada com data, categoria, moeda sugerida pelo país do destino, valor, forma de pagamento e cotação sugerida e editável. O IOF é calculado e gravado no lançamento. A despesa pode ser ligada a uma atividade (RN-04, RN-07 a RN-11, RN-24, RN-25).
+- RF-11: listar as despesas de uma viagem, com as planejadas separadas das realizadas.
+
+**Saldos**
+
+- RF-12: registrar compra de moeda em espécie e carga de cartão pré-pago, com moeda, valor e IOF pago (RN-13, RN-17).
+- RF-13: ao lançar despesa em moeda com saldo, perguntar se será paga com o saldo. Pago com saldo, o custo em BRL usa o custo médio e não gera novo IOF (RN-14, RN-16, RN-22).
+- RF-14: alocar saldo a custos planejados (RN-14).
+- RF-15: ao concluir a viagem, mostrar o saldo não alocado e encerrá-lo nas categorias de "Outros gastos" somente após confirmação (RN-14).
+
+**Planejamento e histórico**
+
+- RF-16: mostrar o total planejado por ano e, nas viagens com orçamento, o valor restante (RN-19, RN-23).
+- RF-17: listar as despesas planejadas canceláveis, em ordem da data limite (RN-20).
+- RF-18: mostrar as viagens concluídas por ano, com o total realizado de cada viagem e de cada ano (RN-06, RN-23).
