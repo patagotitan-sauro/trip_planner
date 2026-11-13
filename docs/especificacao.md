@@ -9,8 +9,8 @@ Aplicação web para uma família estudar viagens possíveis e decidir qual faze
 Na primeira versão:
 
 - Viagens, com nome, datas de início e fim (exceto em stand-by) e um orçamento total em BRL, opcional.
-- Destinos de cada viagem.
-- Roteiro dia a dia.
+- Destinos de cada viagem, com país e cidade.
+- Roteiro dia a dia, com atividades ligadas a despesas.
 - Custos planejados por categoria.
 - Despesas realizadas, com IOF quando aplicável.
 - Viagens possíveis e planejadas, em estudo antes de decidir. A comparação é avaliação subjetiva do usuário.
@@ -48,7 +48,7 @@ Fora da primeira versão:
 | Viagem | Plano com nome, destinos, roteiro, custos planejados e orçamento opcional. Tem data de início e data de fim, exceto em stand-by. |
 | Viagem possível | Viagem em planejamento, ainda não escolhida, com data de início e fim, usada para comparar opções. |
 | Stand-by | Viagem adiada ou congelada, sem datas de início e fim e fora das telas de planejamento. Pode ser editada com custos planejados e roteiro em dias numerados (dia 1, dia 2 e assim por diante). |
-| Destino | Local visitado em uma viagem. |
+| Destino | Local visitado em uma viagem, com país e, opcionalmente, cidade. |
 | Dia do roteiro | Um dia da viagem com suas atividades. |
 | Categoria | Tipo de gasto (por exemplo, hospedagem, transporte, alimentação). |
 | Custo planejado | Valor estimado de uma categoria para uma viagem futura. Usado para planejar gastos e alocar saldos. |
@@ -67,7 +67,7 @@ Fora da primeira versão:
 
 **Viagem e destinos**
 
-- RN-01: cada destino tem um país, informado pelo código ISO 3166-1 alfa-2.
+- RN-01: cada destino tem um país, informado pelo código ISO 3166-1 alfa-2, e pode ter uma cidade dentro desse país.
 - RN-02: uma viagem é internacional se pelo menos um destino tem país diferente de BR; as demais são nacionais. Viagens com destinos mistos são internacionais. A classificação é derivada dos destinos, serve como rótulo e filtro e não restringe moedas.
 - RN-03: toda viagem tem data de início e data de fim, exceto a viagem em stand-by, que pode não ter datas. A data de fim não pode ser anterior à data de início. A data de fim não conclui nem fecha a viagem: isso exige confirmação do usuário.
 - RN-04: despesas podem ter data anterior à data de início da viagem.
@@ -77,7 +77,7 @@ Fora da primeira versão:
 **Moeda e cotação**
 
 - RN-07: cada despesa tem uma moeda ISO 4217. A moeda sugerida é a moeda do país do destino.
-- RN-08: a cotação é sugerida por API externa e pode ser alterada pelo usuário. A cotação usada é gravada no lançamento.
+- RN-08: a cotação é sugerida por API externa e pode ser alterada pelo usuário. A cotação usada é gravada no lançamento. No cartão de crédito, cada despesa tem a sua própria cotação.
 
 **IOF**
 
@@ -99,6 +99,8 @@ Fora da primeira versão:
 - RN-21: qualquer membro autenticado pode excluir dados lançados por outro membro.
 - RN-22: o custo em BRL de um gasto pago com saldo é o custo médio por unidade do saldo da mesma moeda e do mesmo tipo (cartão pré-pago ou dinheiro), com o IOF já pago, multiplicado pelo valor gasto. O custo médio é recalculado a cada compra ou carga: (custo em BRL restante + custo da nova compra) ÷ (valor restante + valor comprado).
 - RN-23: a página de viagens concluídas é agrupada por ano e mostra o total realizado de cada ano. A página de planejamento mostra o total planejado por ano. O ano de uma viagem é o ano da data de fim. Viagens em stand-by ficam fora desses totais.
+- RN-24: uma atividade do roteiro pode ter várias despesas ligadas a ela, para lançar os gastos diretamente na atividade. Cada despesa pode ser ligada a no máximo uma atividade, ou a nenhuma.
+- RN-25: cada despesa, planejada ou realizada, tem uma categoria.
 
 ## 6. Decisões em aberto
 
