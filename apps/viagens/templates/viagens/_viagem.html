@@ -20,4 +20,5 @@
   {% if viagem.orcamento is not None %}
     <footer><small>Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}</small></footer>
   {% endif %}
+  <footer><a href="{% url 'viagens:editar' viagem.pk %}">Editar</a></footer>
 </article>

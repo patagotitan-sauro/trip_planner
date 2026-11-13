@@ -1,9 +1,11 @@
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from servicos.classificacao import classificar_viagem
 from servicos.viagens import agrupar_viagens
 
+from .forms import ViagemForm
 from .models import Viagem
 
 TIPOS = {"nacional": "Nacionais", "internacional": "Internacionais"}
@@ -30,3 +32,24 @@ def inicio(request: HttpRequest) -> HttpResponse:
         "tipos": TIPOS,
     }
     return render(request, "viagens/inicio.html", contexto)
+
+
+def criar(request: HttpRequest) -> HttpResponse:
+    form = ViagemForm(request.POST if request.method == "POST" else None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Viagem criada.")
+        return redirect("viagens:inicio")
+    return render(request, "viagens/formulario.html", {"form": form, "titulo": "Nova viagem"})
+
+
+def editar(request: HttpRequest, pk: int) -> HttpResponse:
+    viagem = get_object_or_404(Viagem, pk=pk)
+    form = ViagemForm(request.POST if request.method == "POST" else None, instance=viagem)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Viagem atualizada.")
+        return redirect("viagens:inicio")
+    return render(
+        request, "viagens/formulario.html", {"form": form, "titulo": f"Editar {viagem.nome}"}
+    )

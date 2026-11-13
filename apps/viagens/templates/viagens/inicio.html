@@ -5,6 +5,8 @@
 {% block conteudo %}
 <h1>Viagens</h1>
 
+<p><a href="{% url 'viagens:criar' %}" role="button">Nova viagem</a></p>
+
 <div role="group" aria-label="Filtrar por tipo">
   <a href="{% url 'viagens:inicio' %}" role="button" class="{% if tipo %}outline secondary{% endif %}">Todas</a>
   {% for chave, nome in tipos.items %}

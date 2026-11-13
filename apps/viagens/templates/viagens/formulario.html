@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ titulo }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for erro in form.non_field_errors %}<p role="alert"><small>{{ erro }}</small></p>{% endfor %}
+  {% for campo in form %}
+    <label>
+      {{ campo.label }}
+      {{ campo }}
+      {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+    </label>
+  {% endfor %}
+  <div role="group">
+    <button type="submit">Salvar</button>
+    <a href="{% url 'viagens:inicio' %}" role="button" class="secondary outline">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

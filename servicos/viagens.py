@@ -20,7 +20,7 @@ class GruposDeViagens[T]:
 
 
 def agrupar_viagens[T: ComEstadoEFim](viagens: list[T]) -> GruposDeViagens[T]:
-    """RN-18 e RN-23: concluídas agrupadas pelo ano da data de fim, anos recentes primeiro."""
+    """RN-18, RN-23: completed trips grouped by end-date year, newest year first."""
     grupos: GruposDeViagens[T] = GruposDeViagens()
     por_ano: dict[int, list[T]] = {}
     for viagem in viagens:
@@ -41,7 +41,7 @@ def agrupar_viagens[T: ComEstadoEFim](viagens: list[T]) -> GruposDeViagens[T]:
 def validar_datas_da_viagem(
     estado: str, data_inicio: date | None, data_fim: date | None
 ) -> dict[str, str]:
-    """RN-03: datas obrigatórias fora do stand-by; o fim não pode ser anterior ao início."""
+    """RN-03: dates are required outside stand-by; the end cannot precede the start."""
     erros: dict[str, str] = {}
     if estado != STAND_BY:
         if data_inicio is None:
@@ -54,7 +54,7 @@ def validar_datas_da_viagem(
 
 
 def validar_posicao_da_atividade(estado: str, data: date | None, dia: int | None) -> dict[str, str]:
-    """RN-18: o roteiro usa dia numerado em stand-by e data nos demais estados."""
+    """RN-18: the itinerary uses a numbered day in stand-by and a date otherwise."""
     if estado == STAND_BY:
         if dia is None:
             return {"dia": "Informe o número do dia."}

@@ -1,17 +1,8 @@
 from datetime import date
 
-import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from apps.viagens.models import Destino, EstadoViagem, Viagem
-
-
-@pytest.fixture
-def logado(client, db):
-    usuario = get_user_model().objects.create_user("ana", password="senha-forte-123")  # noqa: S106
-    client.force_login(usuario)
-    return client
 
 
 def _viagem(nome, estado=EstadoViagem.PLANEJAMENTO, fim=date(2027, 1, 10), paises=("BR",), **extra):
