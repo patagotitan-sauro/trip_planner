@@ -79,3 +79,13 @@ def test_budget_is_shown_in_reais_when_set(logado):
     html = logado.get(reverse("viagens:inicio")).content.decode()
 
     assert "Orçamento: R$ 12.500,50" in html
+
+
+def test_destinations_show_city_and_country_name(logado):
+    viagem = _viagem("Sul", paises=("BR",))
+    Destino.objects.create(viagem=viagem, pais="AR", cidade="Buenos Aires")
+
+    html = logado.get(reverse("viagens:inicio")).content.decode()
+
+    assert "Buenos Aires, Argentina" in html
+    assert "Brasil" in html

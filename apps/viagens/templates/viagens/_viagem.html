@@ -14,7 +14,7 @@
     {% elif viagem.tipo == "nacional" %}<mark>Nacional</mark>
     {% else %}<small>Sem destino</small>{% endif %}
     {% for destino in viagem.destinos.all %}
-      {{ destino.cidade|default:destino.pais.name }}{% if not forloop.last %}, {% endif %}
+      {% if destino.cidade %}{{ destino.cidade }}, {% endif %}{{ destino.pais.name }}{% if not forloop.last %}; {% endif %}
     {% endfor %}
   </p>
   {% if viagem.orcamento is not None %}
