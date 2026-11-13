@@ -1,5 +1,5 @@
-Conventional Commits:
-- Escreva em português, no formato Conventional Commits (feat:, fix:, refactor:...)
-- Título com até 50 caracteres
-- Sem corpo, a menos que a mudança seja complexa
-- Liste arquivos alterados e não use emojis
+Commit messages (same rules as AGENTS.md section 16):
+- Write in English, in the imperative mood (for example `Add Makefile`)
+- Title up to 50 characters, no Conventional Commits prefix
+- No body, unless the change is complex
+- Do not use emojis
