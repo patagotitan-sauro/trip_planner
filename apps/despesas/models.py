@@ -45,6 +45,7 @@ class Despesa(models.Model):
     )
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="despesas")
     descricao = models.CharField(max_length=100)
+    data = models.DateField(null=True, blank=True)
     situacao = models.CharField(
         max_length=20, choices=SituacaoDespesa.choices, default=SituacaoDespesa.PLANEJADA
     )

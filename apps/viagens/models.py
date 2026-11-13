@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.db.models import F, Q
 from django_countries.fields import CountryField
@@ -17,6 +19,13 @@ class Viagem(models.Model):
     data_inicio = models.DateField(null=True, blank=True)
     data_fim = models.DateField(null=True, blank=True)
     orcamento = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    # RN-10 defaults, kept per trip (RN-12); tests check they match servicos.despesas.
+    aliquota_iof_credito = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0350")
+    )
+    aliquota_iof_pre_pago_dinheiro = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0110")
+    )
 
     class Meta:
         ordering = ["data_fim", "nome"]
@@ -35,6 +44,11 @@ class Viagem(models.Model):
             models.CheckConstraint(
                 condition=Q(orcamento__isnull=True) | Q(orcamento__gte=0),
                 name="viagem_orcamento_nao_negativo",
+            ),
+            models.CheckConstraint(
+                condition=Q(aliquota_iof_credito__gte=0, aliquota_iof_credito__lte=1)
+                & Q(aliquota_iof_pre_pago_dinheiro__gte=0, aliquota_iof_pre_pago_dinheiro__lte=1),
+                name="viagem_aliquotas_iof_entre_0_e_1",
             ),
         ]
 

@@ -133,7 +133,8 @@ def test_unknown_destination_cancels_the_whole_import(banco_antigo: Path) -> Non
         importar(banco_antigo)
 
     assert not Viagem.objects.exists()
-    assert not Categoria.objects.exists()
+    # Categories added by migrations stay; only the imported one must be rolled back.
+    assert not Categoria.objects.filter(nome="Hospedagem").exists()
 
 
 @pytest.mark.django_db
