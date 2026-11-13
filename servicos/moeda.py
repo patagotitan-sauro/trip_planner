@@ -2,6 +2,13 @@ from decimal import ROUND_HALF_UP, Decimal
 
 CENTAVO = Decimal("0.01")
 CASAS_COTACAO = Decimal("0.00000001")
+MOEDA_CASA = "BRL"
+
+
+def converter_para_brl(valor: Decimal, cotacao: Decimal) -> Decimal:
+    """RN-08: `cotacao` is BRL per unit of the foreign currency."""
+    _exige_taxa_positiva(cotacao)
+    return (valor * cotacao).quantize(CENTAVO, rounding=ROUND_HALF_UP)
 
 
 def cotacao_brl(unidades_por_real: Decimal) -> Decimal:

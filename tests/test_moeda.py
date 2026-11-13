@@ -2,7 +2,16 @@ from decimal import Decimal
 
 import pytest
 
-from servicos.moeda import cotacao_brl, valor_em_brl
+from servicos.moeda import converter_para_brl, cotacao_brl, valor_em_brl
+
+
+def test_converter_multiplies_by_the_brl_rate_per_unit() -> None:
+    assert converter_para_brl(Decimal("100"), Decimal("5.12345678")) == Decimal("512.35")
+
+
+def test_converter_rejects_a_non_positive_rate() -> None:
+    with pytest.raises(ValueError, match="positiva"):
+        converter_para_brl(Decimal("10"), Decimal("0"))
 
 
 def test_cotacao_is_brl_per_unit_of_foreign_currency() -> None:

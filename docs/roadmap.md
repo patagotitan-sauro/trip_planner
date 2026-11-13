@@ -36,10 +36,10 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 1.
 
 ## Phase 3: Expenses (`despesas`)
-- [ ] Rules in `servicos/`: IOF per RN-09 to RN-13, reusing `servicos/moeda.py`.
+- [x] Rules in `servicos/despesas.py`: IOF per RN-09 to RN-11, reusing `servicos/moeda.py`. Cash and prepaid purchases (RN-13) wait for Phase 4.
 - [ ] Create and list expenses per trip: category, currency, amount, planned or actual, optional activity link (RN-24, RN-25).
 - [ ] Each credit-card expense keeps its own rate (RN-08).
-- [ ] Tests: IOF amounts, rounding, 8-decimal rates.
+- [x] Tests: IOF amounts, rounding, 8-decimal rates.
 - [ ] IOF rates per trip in the trip form (RN-12), deferred from Phase 2. Schema change: confirm the plan first.
 - Depends on: Phase 2. The rules can be written during Phase 2.
 

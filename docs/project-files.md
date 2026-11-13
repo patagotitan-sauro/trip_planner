@@ -54,6 +54,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `apps/despesas/` | Expense categories and expenses (models and migrations). |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
+| `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, IOF by payment method (RN-09 to RN-11), allowed payment methods by currency (RN-10) and totals. |
 | `servicos/moeda.py` | Converts amounts to BRL and rounds money in one place. |
 | `servicos/classificacao.py` | Classifies a trip as national or international from its destinations (RN-02). |
 | `servicos/viagens.py` | Trip rules: grouping by state and year, date validation, who can be deleted, itinerary grouping and position (RN-03, RN-06, RN-18, RN-23). |
