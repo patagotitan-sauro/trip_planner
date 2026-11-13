@@ -30,7 +30,8 @@ Rules for every phase (from AGENTS.md):
 - [x] Destinations: country (default Brasil) and city, both required; the first one is asked when creating the trip, more come from an "Acrescentar novo destino" button on the trip page.
 - [ ] Itinerary by date, or by numbered day in stand-by (RN-18, RN-24).
 - [x] Use `classificar_viagem` (RN-02) for the national or international label.
-- Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes and delete (RF-08, RF-09) go to the backlog below.
+- [x] Delete planning and stand-by trips, after a confirmation page (RF-09). Completed trips cannot be deleted.
+- Deferred by the owner: IOF rates in the trip form (RN-12) go to Phase 3; state changes (RF-08) go to the backlog below.
 - Depends on: Phase 1.
 
 ## Phase 3: Expenses (`despesas`)
@@ -69,7 +70,7 @@ Rules for every phase (from AGENTS.md):
 
 ## Backlog (deferred, no phase yet)
 - [ ] Change a trip's state: stand-by back to planning; complete with confirmation (RF-08, RN-14). Completing ties to Phase 4.
-- [ ] Delete trips and their data, with confirmation (RF-09, RN-21).
+- [ ] Delete expenses and other posted data, in the screens that create them (RN-21).
 
 ## Out of scope for the first version (spec section 1)
 Expense splitting, reservation checklists, charts and reports, per-category budgets, bank spread.

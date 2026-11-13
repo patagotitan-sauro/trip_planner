@@ -53,6 +53,11 @@ def validar_datas_da_viagem(
     return erros
 
 
+def pode_excluir_viagem(estado: str) -> bool:
+    """RN-06: completed trips stay in the history; the others can be deleted."""
+    return estado in (STAND_BY, PLANEJAMENTO)
+
+
 def validar_posicao_da_atividade(estado: str, data: date | None, dia: int | None) -> dict[str, str]:
     """RN-18: the itinerary uses a numbered day in stand-by and a date otherwise."""
     if estado == STAND_BY:

@@ -88,3 +88,9 @@ def test_stand_by_activity_needs_a_day_number_of_one_or_more():
 def test_activity_in_other_states_needs_a_date():
     assert set(viagens.validar_posicao_da_atividade("planejamento", None, 2)) == {"data"}
     assert viagens.validar_posicao_da_atividade("concluida", date(2026, 1, 1), None) == {}
+
+
+def test_only_planning_and_stand_by_trips_can_be_deleted():
+    assert viagens.pode_excluir_viagem("planejamento")
+    assert viagens.pode_excluir_viagem("stand_by")
+    assert not viagens.pode_excluir_viagem("concluida")

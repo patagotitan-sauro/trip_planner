@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block titulo %}Excluir {{ viagem.nome }} - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<h1>Excluir viagem</h1>
+
+<article>
+  <p>Tem certeza de que deseja excluir <strong>{{ viagem.nome }}</strong>? Esta ação não pode ser desfeita.</p>
+  <p>Também serão apagados: {{ destinos }} destino(s), {{ atividades }} atividade(s) do roteiro e {{ despesas }} despesa(s).</p>
+  <form method="post">
+    {% csrf_token %}
+    <div role="group">
+      <button type="submit" class="contrast">Excluir definitivamente</button>
+      <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+    </div>
+  </form>
+</article>
+{% endblock %}

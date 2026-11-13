@@ -123,7 +123,7 @@ Cada requisito cita as regras de negócio em que se baseia. Todas as telas exige
 - RF-06: acrescentar outros destinos de uma viagem pelo botão "Acrescentar novo destino", sempre com país (padrão: Brasil) e cidade, e remover destinos (RN-01).
 - RF-07: montar o roteiro por data, ou por dia numerado em stand-by, com atividades em cada dia (RN-18, RN-24).
 - RF-08: mudar o estado da viagem: incluir uma viagem em stand-by no planejamento e marcar uma viagem como concluída, esta somente após confirmação do usuário (RN-03, RN-14, RN-18).
-- RF-09: excluir viagens e dados lançados, inclusive os de outro membro (RN-21).
+- RF-09: excluir uma viagem em planejamento ou em stand-by, somente após confirmação do usuário, que vê quantos destinos, atividades e despesas serão apagados com ela. Viagens concluídas ficam no histórico e não podem ser excluídas. Qualquer membro pode excluir, inclusive o que foi lançado por outro (RN-06, RN-21).
 
 **Despesas**
 

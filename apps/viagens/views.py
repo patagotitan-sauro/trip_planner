@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from servicos.classificacao import classificar_viagem
-from servicos.viagens import agrupar_viagens
+from servicos.viagens import agrupar_viagens, pode_excluir_viagem
 
 from .forms import DestinoForm, ViagemForm
 from .models import Destino, Viagem
@@ -69,7 +69,26 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
         messages.success(request, "Destino adicionado.")
         return redirect("viagens:detalhe", pk=viagem.pk)
     viagem.tipo = _tipo_da_viagem(viagem)
-    return render(request, "viagens/detalhe.html", {"viagem": viagem, "form": form})
+    contexto = {"viagem": viagem, "form": form, "pode_excluir": pode_excluir_viagem(viagem.estado)}
+    return render(request, "viagens/detalhe.html", contexto)
+
+
+def excluir(request: HttpRequest, pk: int) -> HttpResponse:
+    viagem = get_object_or_404(Viagem, pk=pk)
+    if not pode_excluir_viagem(viagem.estado):
+        messages.error(request, "Viagens concluídas ficam no histórico e não podem ser excluídas.")
+        return redirect("viagens:detalhe", pk=pk)
+    if request.method == "POST":
+        viagem.delete()
+        messages.success(request, "Viagem excluída.")
+        return redirect("viagens:inicio")
+    contexto = {
+        "viagem": viagem,
+        "destinos": viagem.destinos.count(),
+        "atividades": viagem.atividades.count(),
+        "despesas": viagem.despesas.count(),
+    }
+    return render(request, "viagens/excluir.html", contexto)
 
 
 @require_POST
