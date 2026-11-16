@@ -14,10 +14,11 @@ A family web app to study possible trips and decide which one to take, manage th
 - Optional budget per trip, with the remaining value shown against the planned costs.
 - Planning page: planned totals per year and the cancelable costs by deadline.
 - History: realized total of each completed trip and of each year.
+- Exchange-rate suggestion (Frankfurter) on the expense and balance purchase forms; the rate stays editable.
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
 
-Planned (see [docs/roadmap.md](docs/roadmap.md)): exchange-rate suggestion via Frankfurter, production setup.
+Planned (see [docs/roadmap.md](docs/roadmap.md)): production setup.
 
 ## Technology stack
 

@@ -62,10 +62,10 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 3.
 
 ## Phase 6: Exchange-rate API (`servicos/integracoes/`)
-- [ ] Protocol (interface) plus a Frankfurter client.
-- [ ] The form suggests the rate; the user can edit it (RN-08).
-- [ ] Tests mock the network; no real calls in tests.
-- Can run in parallel with Phases 2 and 3.
+- [x] Protocol (interface) plus a Frankfurter client: `servicos/integracoes/cotacao.py` (`ProvedorDeCotacao`, `CotacaoSugerida`, `CotacaoIndisponivel`), `servicos/integracoes/frankfurter.py` (standard library only, https only, 5 s timeout) and the rule in `servicos/cotacao.py` (the expense date's rate; the latest when there is no date or it is in the future).
+- [x] The form suggests the rate; the user can edit it (RN-08): a "Sugerir cotação" button on the expense form and on the balance purchase form reloads the form with the rate filled in; nothing is saved until the user saves. No JavaScript.
+- [x] Tests mock the network; no real calls in tests (an autouse fixture blocks `urlopen`).
+- Not done: suggesting the currency from the destination country (RN-07, RF-11); no rate cache.
 
 ## Phase 7: Production
 - [ ] `.env` on the main computer: DEBUG off, ALLOWED_HOSTS set.
@@ -73,6 +73,7 @@ Rules for every phase (from AGENTS.md):
 - [ ] Backup scheduled (cron) and copied off the machine.
 - [ ] Restore tested once.
 - [ ] CI runs `make check` on each push.
+- [ ] The production container can reach `api.frankfurter.dev` over HTTPS (rate suggestion).
 
 ## Backlog (deferred, no phase yet)
 - [ ] Delete expenses and other posted data, in the screens that create them (RN-21).
