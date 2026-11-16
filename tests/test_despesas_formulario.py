@@ -363,3 +363,67 @@ def test_trip_page_offers_planned_cost_and_realized_expense_entries(logado, viag
 
     assert reverse("despesas:criar", args=[viagem.pk]) + "?situacao=planejada" in html
     assert reverse("despesas:criar", args=[viagem.pk]) + "?situacao=realizada" in html
+
+
+def test_planned_cost_can_be_marked_cancelable_with_a_deadline(logado, viagem, categoria):
+    dados = _dados(
+        categoria,
+        situacao="planejada",
+        cancelavel="on",
+        data_limite_cancelamento="2027-02-01",
+    )
+
+    response = _criar(logado, viagem, dados)
+
+    assert response.status_code == 302
+    despesa = Despesa.objects.get()
+    assert despesa.cancelavel
+    assert despesa.data_limite_cancelamento == date(2027, 2, 1)
+
+
+def test_cancelable_cost_needs_a_deadline(logado, viagem, categoria):
+    response = _criar(logado, viagem, _dados(categoria, situacao="planejada", cancelavel="on"))
+
+    assert response.status_code == 200
+    assert "data_limite_cancelamento" in response.context["form"].errors
+    assert not Despesa.objects.exists()
+
+
+def test_deadline_without_the_cancelable_mark_is_refused(logado, viagem, categoria):
+    dados = _dados(categoria, situacao="planejada", data_limite_cancelamento="2027-02-01")
+
+    response = _criar(logado, viagem, dados)
+
+    assert response.status_code == 200
+    assert "data_limite_cancelamento" in response.context["form"].errors
+
+
+def test_realized_expense_drops_the_cancellation_mark(logado, viagem, categoria):
+    dados = _dados(categoria, cancelavel="on", data_limite_cancelamento="2027-02-01")
+
+    response = _criar(logado, viagem, dados)
+
+    assert response.status_code == 302
+    despesa = Despesa.objects.get()
+    assert not despesa.cancelavel
+    assert despesa.data_limite_cancelamento is None
+
+
+def test_turning_a_cancelable_cost_into_an_expense_clears_the_deadline(logado, viagem, categoria):
+    _criar(
+        logado,
+        viagem,
+        _dados(
+            categoria, situacao="planejada", cancelavel="on", data_limite_cancelamento="2027-02-01"
+        ),
+    )
+    despesa = Despesa.objects.get()
+
+    response = logado.post(
+        reverse("despesas:editar", args=[viagem.pk, despesa.pk]), _dados(categoria)
+    )
+
+    assert response.status_code == 302
+    despesa.refresh_from_db()
+    assert not despesa.cancelavel
+    assert despesa.data_limite_cancelamento is None

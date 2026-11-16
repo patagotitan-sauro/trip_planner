@@ -162,3 +162,21 @@ def test_deleting_an_expense_goes_back_to_the_list(logado, viagem, categoria):
     response = logado.post(reverse("despesas:excluir", args=[viagem.pk, despesa.pk]))
 
     assert response.url == reverse("despesas:lista", args=[viagem.pk])
+
+
+def test_cancelable_cost_shows_its_deadline(logado, viagem, categoria):
+    _despesa(
+        viagem,
+        categoria,
+        situacao="planejada",
+        cancelavel=True,
+        data_limite_cancelamento=date(2027, 2, 1),
+    )
+
+    assert "Cancelável até 01/02/2027" in _html(logado, viagem)
+
+
+def test_cost_that_is_not_cancelable_shows_no_deadline(logado, viagem, categoria):
+    _despesa(viagem, categoria, situacao="planejada")
+
+    assert "Cancelável" not in _html(logado, viagem)

@@ -39,6 +39,7 @@
             <td>
               {{ despesa.descricao }}
               {% if despesa.atividade %}<br><small>Atividade: {{ despesa.atividade }}</small>{% endif %}
+              {% if despesa.cancelavel %}<br><small>Cancelável até {{ despesa.data_limite_cancelamento|date:"d/m/Y" }}</small>{% endif %}
             </td>
             <td>{{ despesa.categoria }}</td>
             <td>

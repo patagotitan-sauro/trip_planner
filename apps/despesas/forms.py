@@ -9,6 +9,7 @@ from apps.viagens.forms import CamposInvalidosMixin
 from apps.viagens.models import Viagem
 from servicos.despesas import calcular_despesa, moeda_estrangeira, validar_forma_de_pagamento
 from servicos.moeda import MOEDA_CASA
+from servicos.planejamento import validar_cancelamento
 from servicos.saldos import calcular_despesa_com_saldo, disponivel, registrar_uso
 
 from .models import Despesa, MovimentoSaldo, SituacaoDespesa, moeda_iso
@@ -80,6 +81,8 @@ class DespesaForm(CamposInvalidosMixin, forms.ModelForm):
             "valor_original",
             "cotacao",
             "forma_pagamento",
+            "cancelavel",
+            "data_limite_cancelamento",
         ]
         labels = {
             "situacao": "Situação",
@@ -88,8 +91,13 @@ class DespesaForm(CamposInvalidosMixin, forms.ModelForm):
             "atividade": "Atividade do roteiro (opcional)",
             "data": "Data (opcional)",
             "forma_pagamento": "Forma de pagamento",
+            "cancelavel": "Custo cancelável (só para custo planejado)",
+            "data_limite_cancelamento": "Data limite de cancelamento",
         }
-        widgets = {"data": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
+        widgets = {
+            "data": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "data_limite_cancelamento": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        }
 
     def __init__(self, *args, viagem: Viagem, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,9 +142,22 @@ class DespesaForm(CamposInvalidosMixin, forms.ModelForm):
                 self.add_error("valor_original", str(erro))
         return None
 
+    def _limpar_cancelamento(self, dados: dict, situacao: str | None) -> None:
+        if situacao == SituacaoDespesa.REALIZADA:
+            # Turning a planned cost into an expense drops the cancellation mark (RN-20).
+            dados["cancelavel"] = False
+            dados["data_limite_cancelamento"] = None
+        elif situacao:
+            erros = validar_cancelamento(
+                situacao, dados.get("cancelavel", False), dados.get("data_limite_cancelamento")
+            )
+            for campo, mensagem in erros.items():
+                self.add_error(campo, mensagem)
+
     def clean(self):
         dados = super().clean()
         situacao = dados.get("situacao")
+        self._limpar_cancelamento(dados, situacao)
         moeda = dados.get("moeda")
         valor = dados.get("valor_original")
         if not (situacao and moeda and valor is not None):
