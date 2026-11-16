@@ -73,6 +73,8 @@ class Despesa(models.Model):
     movimento_saldo = models.CharField(
         max_length=20, choices=MovimentoSaldo.choices, blank=True, default=""
     )
+    cancelavel = models.BooleanField(default=False)
+    data_limite_cancelamento = models.DateField(null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -92,6 +94,16 @@ class Despesa(models.Model):
                 )
                 | Q(situacao=SituacaoDespesa.REALIZADA),
                 name="despesa_compra_e_encerramento_realizados",
+            ),
+            models.CheckConstraint(
+                condition=Q(cancelavel=True, data_limite_cancelamento__isnull=False)
+                | Q(cancelavel=False, data_limite_cancelamento__isnull=True),
+                name="despesa_cancelavel_com_prazo",
+            ),
+            # RN-20: only a planned cost can be cancelable.
+            models.CheckConstraint(
+                condition=Q(cancelavel=False) | Q(situacao=SituacaoDespesa.PLANEJADA),
+                name="despesa_cancelavel_planejada",
             ),
         ]
 

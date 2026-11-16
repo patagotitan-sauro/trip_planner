@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -90,3 +91,53 @@ def test_rate_keeps_eight_decimal_places(viagem: Viagem, categoria: Categoria) -
     despesa.refresh_from_db()
 
     assert despesa.cotacao == Decimal("5.12345678")
+
+
+@pytest.mark.django_db
+def test_planned_cost_can_be_cancelable_with_a_deadline(
+    viagem: Viagem, categoria: Categoria
+) -> None:
+    despesa = criar_despesa(
+        viagem,
+        categoria,
+        situacao="planejada",
+        cancelavel=True,
+        data_limite_cancelamento=date(2027, 1, 5),
+    )
+
+    despesa.refresh_from_db()
+
+    assert despesa.cancelavel
+    assert despesa.data_limite_cancelamento == date(2027, 1, 5)
+
+
+@pytest.mark.django_db
+def test_expense_is_not_cancelable_by_default(viagem: Viagem, categoria: Categoria) -> None:
+    despesa = criar_despesa(viagem, categoria)
+
+    assert despesa.cancelavel is False
+    assert despesa.data_limite_cancelamento is None
+
+
+@pytest.mark.django_db
+def test_cancelable_without_deadline_is_rejected(viagem: Viagem, categoria: Categoria) -> None:
+    with pytest.raises(IntegrityError), transaction.atomic():
+        criar_despesa(viagem, categoria, situacao="planejada", cancelavel=True)
+
+
+@pytest.mark.django_db
+def test_deadline_without_cancelable_mark_is_rejected(viagem: Viagem, categoria: Categoria) -> None:
+    with pytest.raises(IntegrityError), transaction.atomic():
+        criar_despesa(viagem, categoria, data_limite_cancelamento=date(2027, 1, 5))
+
+
+@pytest.mark.django_db
+def test_realized_expense_cannot_be_cancelable(viagem: Viagem, categoria: Categoria) -> None:
+    with pytest.raises(IntegrityError), transaction.atomic():
+        criar_despesa(
+            viagem,
+            categoria,
+            situacao="realizada",
+            cancelavel=True,
+            data_limite_cancelamento=date(2027, 1, 5),
+        )
