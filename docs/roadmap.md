@@ -50,7 +50,7 @@ Rules for every phase (from AGENTS.md):
 - [x] Register prepaid card and cash purchases (RF-13, RN-13): form, balances list on the trip page, IOF at the trip's rate.
 - [x] Allocate balances to planned costs or expenses (RF-14, RF-15, RN-14, RN-16, RN-17): the expense form asks whether to pay with the balance; a planned cost reserves it.
 - [x] When completing a trip, show the unallocated balances and close them into the "Outros gastos..." categories after confirmation (RF-16, RN-14); the completion screen already exists (RF-08). Everything left in a balance is closed, including amounts still reserved by planned costs.
-- Decided for this phase: expenses linked to a balance (purchases, uses, closings) cannot be edited or deleted until the RN-21 backlog item; reopening a trip does not reopen closed balances.
+- Decided for this phase: expenses linked to a balance (purchases, uses, closings) cannot be edited or deleted until the RN-21 backlog item; reopening a trip does not reopen closed balances. Purchases became editable and deletable afterwards (see the backlog).
 - Depends on: Phase 3.
 
 ## Phase 5: Planning and history
@@ -76,7 +76,8 @@ Rules for every phase (from AGENTS.md):
 - [ ] The production container can reach `api.frankfurter.dev` over HTTPS (rate suggestion).
 
 ## Backlog (deferred, no phase yet)
-- [ ] Delete expenses and other posted data, in the screens that create them (RN-21).
+- [x] Change or delete a balance purchase or load (RN-21): from the expense list; amount, rate and date can change (type and currency cannot, and the IOF rate stays as recorded); allowed only while the balance is open and nothing was spent from it, and not below what planned costs reserve. Deleting the only purchase removes the balance.
+- [ ] Delete expenses and other posted data, in the screens that create them (RN-21): still open for balance uses and closings.
 
 ## Out of scope for the first version (spec section 1)
 Expense splitting, reservation checklists, charts and reports, per-category budgets, bank spread.
