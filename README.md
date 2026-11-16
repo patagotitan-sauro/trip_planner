@@ -5,13 +5,16 @@ A family web app to study possible trips and decide which one to take, manage th
 ## Key features
 
 - Trips in three states: stand-by (no dates), planning and completed (grouped by year), with a national/international label and filter.
+- State changes with a confirmation page (stand-by to planning, complete, reopen); planning and stand-by trips can be deleted.
 - Destinations (country and city) and a day-by-day itinerary (by date, or by numbered day in stand-by).
-- Expenses per trip, planned and realized, in any currency, with IOF and the BRL value computed and stored when recorded.
+- Expenses per trip: create, edit and delete, planned and realized, by category, in any currency, optionally linked to an itinerary activity.
+- IOF and the BRL value are computed and stored when an expense is recorded; IOF rates are set per trip.
+- Expense list per trip with BRL totals, planned and realized separately.
 - Optional budget per trip.
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
 
-Planned (see [docs/roadmap.md](docs/roadmap.md)): prepaid card and cash balances, planning and history totals, exchange-rate suggestion via Frankfurter, production setup.
+Planned (see [docs/roadmap.md](docs/roadmap.md)): prepaid card and cash balances (Phase 4), planning and history totals, exchange-rate suggestion via Frankfurter, production setup.
 
 ## Technology stack
 
@@ -46,6 +49,18 @@ make init        # create .env from .env.example (never overwrites)
 make up          # build and start (development, http://127.0.0.1:8085)
 make superuser   # create an admin account
 ```
+
+Environment variables (see `.env.example`):
+
+| Variable | Purpose |
+|---|---|
+| `DJANGO_SECRET_KEY` | Required; replace `change-me` |
+| `DJANGO_DEBUG` | `1` enables debug mode; `0` by default |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hosts, for example `localhost,127.0.0.1` |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Comma-separated origins; empty by default |
+| `APP_PORT` | Published port (`8085` in `.env.example`) |
+
+`compose.yaml` also reads `APP_BIND` (default `127.0.0.1`) to choose the published address.
 
 Common commands (`make help` lists all):
 
