@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -67,6 +68,34 @@ def calcular_despesa_com_saldo(estado: EstadoDoSaldo, valor: Decimal) -> Resulta
 def disponivel(estado: EstadoDoSaldo, reservado: Decimal) -> Decimal:
     """RN-14: what can still be allocated after the planned costs already linked to the balance."""
     return max(estado.valor_restante - reservado, Decimal(0))
+
+
+def recompor_saldo(compras: Iterable[tuple[Decimal, Decimal]]) -> EstadoDoSaldo:
+    """RN-21: the balance rebuilt from (amount, BRL cost with IOF) of its purchases alone."""
+    estado = EstadoDoSaldo()
+    for valor, custo_brl in compras:
+        estado = registrar_compra(estado, valor, custo_brl)
+    return estado
+
+
+def motivo_de_bloqueio_da_compra(
+    *,
+    encerrado: bool,
+    ha_uso_realizado: bool,
+    estado_final: EstadoDoSaldo,
+    reservado: Decimal,
+) -> str | None:
+    """RN-21: a purchase can change only while nothing was booked at the balance's average cost."""
+    if encerrado:
+        return "Esse saldo já foi encerrado; a compra não pode mais ser alterada."
+    if ha_uso_realizado:
+        return (
+            "Há despesas pagas com esse saldo, cujo custo médio já foi lançado; "
+            "a compra não pode ser alterada."
+        )
+    if estado_final.valor_restante < reservado:
+        return "Custos planejados reservam mais do que sobraria no saldo depois dessa mudança."
+    return None
 
 
 def categoria_de_encerramento(tipo: str) -> str:
