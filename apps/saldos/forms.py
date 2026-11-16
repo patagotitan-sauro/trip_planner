@@ -10,6 +10,7 @@ from apps.viagens.models import Viagem
 from servicos.despesas import calcular_despesa, moeda_estrangeira
 from servicos.saldos import categoria_de_encerramento, registrar_compra
 
+from .compras import motivo_de_bloqueio, refazer_saldo
 from .models import Saldo, TipoSaldo
 
 
@@ -41,12 +42,32 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
 
-    def __init__(self, *args, viagem: Viagem, **kwargs):
+    def __init__(self, *args, viagem: Viagem, compra: Despesa | None = None, **kwargs):
+        if compra is not None:
+            atual = {
+                "tipo": compra.forma_pagamento,
+                "moeda": compra.moeda,
+                "valor": compra.valor_original,
+                "cotacao": compra.cotacao,
+                "data": compra.data,
+            }
+            kwargs["initial"] = {**atual, **(kwargs.get("initial") or {})}
         super().__init__(*args, **kwargs)
         self.viagem = viagem
+        self.compra = compra
         self._resultado = None
+        if compra is not None:
+            # Type and currency identify the balance, so they stay as bought; only the rest changes.
+            for nome in ("tipo", "moeda"):
+                self.fields[nome].widget = forms.HiddenInput()
+                self.fields[nome].required = False
+
+    def clean_tipo(self):
+        return self.compra.forma_pagamento if self.compra else self.cleaned_data["tipo"]
 
     def clean_moeda(self):
+        if self.compra:
+            return self.compra.moeda
         moeda = self.cleaned_data["moeda"]
         if not moeda_estrangeira(moeda):
             raise forms.ValidationError("Informe uma moeda estrangeira; reais não têm saldo.")
@@ -56,12 +77,16 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
         dados = super().clean()
         if self.errors:
             return dados
-        saldo = Saldo.objects.filter(
-            viagem=self.viagem, tipo=dados["tipo"], moeda=dados["moeda"]
-        ).first()
-        if saldo and saldo.encerrado:
-            raise forms.ValidationError("Esse saldo já foi encerrado e não recebe novas compras.")
+        if self.compra is None:
+            saldo = Saldo.objects.filter(
+                viagem=self.viagem, tipo=dados["tipo"], moeda=dados["moeda"]
+            ).first()
+            if saldo and saldo.encerrado:
+                raise forms.ValidationError(
+                    "Esse saldo já foi encerrado e não recebe novas compras."
+                )
         # RN-13: the IOF is charged when the balance is bought or loaded.
+        # RN-12: an edited purchase keeps the IOF rate it was recorded with.
         self._resultado = calcular_despesa(
             dados["valor"],
             dados["moeda"],
@@ -69,11 +94,31 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
             dados["tipo"],
             self.viagem.aliquota_iof_credito,
             self.viagem.aliquota_iof_pre_pago_dinheiro,
+            taxa_iof_gravada=self.compra.taxa_iof if self.compra else None,
         )
+        if self.compra:
+            motivo = motivo_de_bloqueio(self.compra, (dados["valor"], self._resultado.total_brl))
+            if motivo:
+                raise forms.ValidationError(motivo)
         return dados
 
     @transaction.atomic
     def save(self) -> Saldo:
+        return self._alterar() if self.compra else self._criar()
+
+    def _alterar(self) -> Saldo:
+        compra, resultado = self.compra, self._resultado
+        compra.data = self.cleaned_data["data"]
+        compra.valor_original = self.cleaned_data["valor"]
+        compra.cotacao = resultado.cotacao
+        compra.valor_brl = resultado.valor_brl
+        compra.taxa_iof = resultado.taxa_iof
+        compra.valor_iof = resultado.valor_iof
+        compra.save()
+        refazer_saldo(compra.saldo)
+        return compra.saldo
+
+    def _criar(self) -> Saldo:
         dados = self.cleaned_data
         resultado = self._resultado
         saldo, _ = Saldo.objects.get_or_create(

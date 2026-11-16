@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block titulo %}Excluir compra ou carga - Planejador de Viagens{% endblock %}
+
+{% block conteudo %}
+<h1>Excluir compra ou carga</h1>
+
+<article>
+  <p>Tem certeza de que deseja excluir <strong>{{ compra.descricao }}</strong> ({{ viagem.nome }}): {{ compra.valor_original|floatformat:"2g" }} {{ compra.moeda }}? Esta ação não pode ser desfeita.</p>
+  <p><small>O valor e o custo dessa compra saem de {{ saldo }}. Se ela for a única compra, o saldo deixa de existir.</small></p>
+  <form method="post">
+    {% csrf_token %}
+    <div role="group">
+      <button type="submit" class="perigo">Excluir definitivamente</button>
+      <a href="{% url 'despesas:lista' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+    </div>
+  </form>
+</article>
+{% endblock %}

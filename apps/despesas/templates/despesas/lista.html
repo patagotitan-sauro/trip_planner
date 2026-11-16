@@ -54,6 +54,9 @@
               {% if not despesa.travada_por_saldo %}
                 <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
                 <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
+              {% elif despesa.movimento_saldo == "compra" %}
+                <a href="{% url 'saldos:editar_compra' viagem.pk despesa.pk %}">Editar</a>
+                <a href="{% url 'saldos:excluir_compra' viagem.pk despesa.pk %}">Excluir</a>
               {% endif %}
             </td>
           </tr>
