@@ -49,8 +49,10 @@
             <td>{{ despesa.valor_brl|floatformat:"2g" }}</td>
             <td>{{ despesa.valor_iof|floatformat:"2g" }}</td>
             <td>
-              <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
-              <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
+              {% if not despesa.travada_por_saldo %}
+                <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
+                <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -61,6 +63,9 @@
       <strong>Total: R$ {{ grupo.total|floatformat:"2g" }}</strong>
       <small>(inclui R$ {{ grupo.iof|floatformat:"2g" }} de IOF)</small>
     </p>
+    {% if grupo.fora_do_total %}
+      <p><small>Compras de moeda e cargas de cartão ficam fora do total: o custo delas entra pelas despesas pagas com o saldo e pelo encerramento.</small></p>
+    {% endif %}
   {% else %}
     <p>Nenhum lançamento ainda.</p>
   {% endif %}
