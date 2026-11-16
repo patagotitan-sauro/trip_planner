@@ -10,11 +10,12 @@ A family web app to study possible trips and decide which one to take, manage th
 - Expenses per trip: create, edit and delete, planned and realized, by category, in any currency, optionally linked to an itinerary activity.
 - IOF and the BRL value are computed and stored when an expense is recorded; IOF rates are set per trip.
 - Expense list per trip with BRL totals, planned and realized separately.
+- Prepaid card and cash balances per trip: register a purchase or load, pay or reserve expenses with a balance (counted at the average cost), and close leftover balances when completing the trip.
 - Optional budget per trip.
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
 
-Planned (see [docs/roadmap.md](docs/roadmap.md)): prepaid card and cash balances (Phase 4), planning and history totals, exchange-rate suggestion via Frankfurter, production setup.
+Planned (see [docs/roadmap.md](docs/roadmap.md)): planning and history totals, exchange-rate suggestion via Frankfurter, production setup.
 
 ## Technology stack
 
@@ -35,7 +36,7 @@ Dependencies point one way: presentation, then services, then models and integra
 | Layer | Where | Responsibility |
 |---|---|---|
 | Presentation | `apps/*/views.py`, `forms.py`, `templates/` | HTTP, forms, rendering. No business rules |
-| Services | `servicos/` | Business rules in pure Python: money, conversion, IOF, trip rules |
+| Services | `servicos/` | Business rules in pure Python: money, conversion, IOF, balances, trip rules |
 | Models | `apps/*/models.py` | Entities and persistence |
 | Integrations | `servicos/integracoes/` | External APIs behind an interface |
 
@@ -77,7 +78,7 @@ Never run `docker compose down -v`: it deletes the database volume.
 ## Project structure
 
 ```
-apps/        Django apps: contas (login), viagens, despesas
+apps/        Django apps: contas (login), viagens, despesas, saldos
 config/      Django settings, URLs, WSGI/ASGI
 servicos/    Business rules (pure Python) and integrations/
 templates/   Base template
