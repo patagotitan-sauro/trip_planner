@@ -52,9 +52,11 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
 | `apps/despesas/` | Expense categories and expenses: models and migrations, plus the screens to list, create, edit and delete the expenses of a trip (the IOF and BRL value are computed on save by `servicos/despesas.py`). |
+| `apps/saldos/` | Prepaid card and cash balances of a trip (`Saldo`: type, currency, remaining amount and BRL cost). Models and migrations, plus the form to buy currency or load a prepaid card (it creates the `Saldo` and the realized expense with IOF); `encerramento.py` closes the leftover balances when the trip is completed; expenses link to a balance through `Despesa.saldo` and `movimento_saldo`. |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs (for example exchange rates) behind an interface. |
-| `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, IOF by payment method (RN-09 to RN-11), allowed payment methods by currency (RN-10) and totals. |
+| `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, IOF by payment method (RN-09 to RN-11), allowed payment methods by currency, including payment with a balance (RN-10, RN-14), and totals. |
+| `servicos/saldos.py` | Balance rules: average cost, purchase, use at average cost, available amount and closing category (RN-14, RN-17, RN-22). |
 | `servicos/moeda.py` | Converts amounts to BRL and rounds money in one place. |
 | `servicos/classificacao.py` | Classifies a trip as national or international from its destinations (RN-02). |
 | `servicos/viagens.py` | Trip rules: grouping by state and year, date validation, who can be deleted, itinerary grouping and position (RN-03, RN-06, RN-18, RN-23). |

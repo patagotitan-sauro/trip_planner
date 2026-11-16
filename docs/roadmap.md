@@ -36,7 +36,7 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 1.
 
 ## Phase 3: Expenses (`despesas`)
-- [x] Rules in `servicos/despesas.py`: IOF per RN-09 to RN-11, reusing `servicos/moeda.py`. Cash and prepaid purchases (RN-13) wait for Phase 4.
+- [x] Rules in `servicos/despesas.py`: IOF per RN-09 to RN-11, reusing `servicos/moeda.py`. Cash and prepaid purchases (RN-13) are in Phase 4.
 - [x] Create, edit and delete expenses per trip: category, currency, amount, planned or actual, optional activity link (RN-24, RN-25). IOF and BRL value are computed and stored on save; the trip's current IOF rates only apply to new or changed entries (RN-12).
 - [x] List the expenses of a trip, planned and realized separately, with totals in BRL (IOF included and shown apart).
 - [x] Each credit-card expense keeps its own rate (RN-08).
@@ -44,11 +44,13 @@ Rules for every phase (from AGENTS.md):
 - [x] IOF rates per trip in the trip form (RN-12), as percentages; blank keeps the current rate. Schema added in its own commit.
 - Depends on: Phase 2. The rules can be written during Phase 2.
 
-## Phase 4: Balances (`saldos`) - needs schema confirmation
-- [ ] Register prepaid card and cash purchases.
-- [ ] Allocate balances to planned costs or expenses (RN-14, RN-16, RN-17).
-- [ ] Average cost per RN-22; close a trip with confirmation (RN-14).
-- [ ] When completing a trip, also close the unallocated balances (RN-14); the completion screen already exists (RF-08).
+## Phase 4: Balances (`saldos`)
+- [x] Rules in `servicos/saldos.py`: average cost, purchase, use at average cost, available amount, closing category (RN-14, RN-17, RN-22). Balance payment accepted in `servicos/despesas.py`.
+- [x] Schema (confirmed): `Saldo` per trip, type and currency; `Despesa.saldo` and `movimento_saldo`; the two "Outros gastos..." categories. Accounting: the purchase or load is left out of totals, expenses paid with a balance count at the average cost, the leftover is posted at closing.
+- [x] Register prepaid card and cash purchases (RF-13, RN-13): form, balances list on the trip page, IOF at the trip's rate.
+- [x] Allocate balances to planned costs or expenses (RF-14, RF-15, RN-14, RN-16, RN-17): the expense form asks whether to pay with the balance; a planned cost reserves it.
+- [x] When completing a trip, show the unallocated balances and close them into the "Outros gastos..." categories after confirmation (RF-16, RN-14); the completion screen already exists (RF-08). Everything left in a balance is closed, including amounts still reserved by planned costs.
+- Decided for this phase: expenses linked to a balance (purchases, uses, closings) cannot be edited or deleted until the RN-21 backlog item; reopening a trip does not reopen closed balances.
 - Depends on: Phase 3.
 
 ## Phase 5: Planning and history
