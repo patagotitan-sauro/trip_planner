@@ -1,7 +1,10 @@
+import re
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from typing import Protocol
+
+CODIGO_ISO = re.compile(r"[A-Z]{3}")
 
 
 @dataclass(frozen=True)

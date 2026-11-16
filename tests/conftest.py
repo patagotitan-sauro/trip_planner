@@ -16,3 +16,11 @@ def _plain_static_storage(settings):
         **settings.STORAGES,
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
+
+
+@pytest.fixture(autouse=True)
+def _no_real_network(monkeypatch):
+    def bloqueado(*args, **kwargs):
+        raise AssertionError("Tests must not call the network; inject a fake opener or provider.")
+
+    monkeypatch.setattr("urllib.request.urlopen", bloqueado)

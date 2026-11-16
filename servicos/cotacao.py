@@ -1,10 +1,12 @@
-import re
 from datetime import date
 
 from servicos.despesas import moeda_estrangeira
-from servicos.integracoes.cotacao import CotacaoIndisponivel, CotacaoSugerida, ProvedorDeCotacao
-
-CODIGO_ISO = re.compile(r"[A-Z]{3}")
+from servicos.integracoes.cotacao import (
+    CODIGO_ISO,
+    CotacaoIndisponivel,
+    CotacaoSugerida,
+    ProvedorDeCotacao,
+)
 
 
 def data_da_consulta(data: date | None, hoje: date) -> date | None:
