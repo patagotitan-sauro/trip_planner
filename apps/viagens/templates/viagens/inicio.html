@@ -32,12 +32,12 @@
   </section>
 {% endif %}
 
-{% if grupos.concluidas_por_ano %}
+{% if concluidas %}
   <section>
     <h2>Concluídas</h2>
-    {% for ano, viagens in grupos.concluidas_por_ano.items %}
-      <h3>{{ ano }}</h3>
-      {% for viagem in viagens %}{% include "viagens/_viagem.html" %}{% endfor %}
+    {% for grupo in concluidas %}
+      <h3>{{ grupo.ano }}: R$ {{ grupo.total|floatformat:"2g" }}</h3>
+      {% for viagem in grupo.viagens %}{% include "viagens/_viagem.html" %}{% endfor %}
     {% endfor %}
   </section>
 {% endif %}

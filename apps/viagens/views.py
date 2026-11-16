@@ -4,9 +4,10 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.planejamento.totais import orcamento_a_mostrar
+from apps.planejamento.totais import orcamento_a_mostrar, total_realizado
 from apps.saldos.encerramento import encerrar_saldos, saldos_a_encerrar
 from servicos.classificacao import classificar_viagem
+from servicos.planejamento import totais_por_ano
 from servicos.viagens import (
     CONCLUIDA,
     PLANEJAMENTO,
@@ -46,12 +47,26 @@ def inicio(request: HttpRequest) -> HttpResponse:
     for viagem in Viagem.objects.prefetch_related("destinos", "despesas"):
         viagem.tipo = _tipo_da_viagem(viagem)
         viagem.situacao_orcamento = orcamento_a_mostrar(viagem)
+        if viagem.estado == CONCLUIDA:
+            viagem.total_realizado = total_realizado(viagem)
         if tipo and viagem.tipo != tipo:
             continue
         viagens.append(viagem)
 
+    grupos = agrupar_viagens(viagens)
+    totais = totais_por_ano(
+        (viagem.data_fim, viagem.total_realizado)
+        for por_ano in grupos.concluidas_por_ano.values()
+        for viagem in por_ano
+    )
+    concluidas = [
+        {"ano": ano, "total": totais[ano], "viagens": viagens_do_ano}
+        for ano, viagens_do_ano in grupos.concluidas_por_ano.items()
+    ]
+
     contexto = {
-        "grupos": agrupar_viagens(viagens),
+        "grupos": grupos,
+        "concluidas": concluidas,
         "total": len(viagens),
         "tipo": tipo,
         "tipos": TIPOS,

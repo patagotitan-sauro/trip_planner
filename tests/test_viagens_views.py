@@ -30,7 +30,7 @@ def test_list_shows_the_three_groups_with_completed_ones_by_year(logado):
 
     assert "Em planejamento" in html
     assert "Stand-by" in html
-    assert html.index("<h3>2025</h3>") < html.index("<h3>2023</h3>")
+    assert html.index("<h3>2025: ") < html.index("<h3>2023: ")
     assert "Sem datas" in html
 
 

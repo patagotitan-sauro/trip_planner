@@ -17,6 +17,9 @@
       {% if destino.cidade %}{{ destino.cidade }}, {% endif %}{{ destino.pais.name }}{% if not forloop.last %}; {% endif %}
     {% endfor %}
   </p>
+  {% if viagem.estado == "concluida" %}
+    <p><strong>Total realizado: R$ {{ viagem.total_realizado|floatformat:"2g" }}</strong></p>
+  {% endif %}
   {% if viagem.orcamento is not None %}
     <footer><small>Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}
       {% if viagem.situacao_orcamento %}| {% include "viagens/_orcamento.html" with situacao_orcamento=viagem.situacao_orcamento %}{% endif %}
