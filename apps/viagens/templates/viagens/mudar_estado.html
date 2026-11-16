@@ -19,6 +19,14 @@
     {% endif %}
   {% elif para == "concluida" %}
     <p>A viagem passa para <strong>Concluída</strong> e vai para o histórico. Uma viagem concluída não pode ser excluída, mas pode ser reaberta.</p>
+    {% if saldos %}
+      <p>Os saldos que sobraram serão encerrados e lançados como despesa realizada, sem novo IOF. Depois disso, não recebem novas compras nem pagamentos:</p>
+      <ul>
+        {% for saldo in saldos %}
+          <li>{{ saldo }}: {{ saldo.valor_restante|floatformat:"2g" }} {{ saldo.moeda }}, custo de R$ {{ saldo.custo_restante|floatformat:"2g" }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   {% elif viagem.estado == "stand_by" %}
     <p>A viagem volta para <strong>Em planejamento</strong>. Informe as datas de início e fim.</p>
     {% if convertidas %}

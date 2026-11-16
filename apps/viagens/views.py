@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.saldos.encerramento import encerrar_saldos, saldos_a_encerrar
 from servicos.classificacao import classificar_viagem
 from servicos.viagens import (
     CONCLUIDA,
@@ -131,6 +132,9 @@ def _aplicar_mudanca_de_estado(viagem: Viagem, para: str, datas: dict | None) ->
     viagem.estado = para
     viagem.save()
 
+    if para == CONCLUIDA:
+        encerrar_saldos(viagem)
+
     if STAND_BY in (de, para):
         atividades = list(viagem.atividades.all())
         for atividade in atividades:
@@ -175,6 +179,7 @@ def mudar_estado(request: HttpRequest, pk: int, para: str) -> HttpResponse:
         "form": form,
         "convertidas": convertidas,
         "mantidas": mantidas,
+        "saldos": saldos_a_encerrar(viagem) if para == CONCLUIDA else [],
     }
     return render(request, "viagens/mudar_estado.html", contexto)
 
