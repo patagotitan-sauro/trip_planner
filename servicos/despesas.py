@@ -96,8 +96,14 @@ def calcular_despesa(
     )
 
 
-def validar_forma_de_pagamento(situacao: str, moeda: str, forma_pagamento: str) -> str | None:
-    """RN-10, RN-13: returns an error message, or None when the combination is allowed."""
+def validar_forma_de_pagamento(
+    situacao: str, moeda: str, forma_pagamento: str, com_saldo: bool = False
+) -> str | None:
+    """RN-10, RN-13, RN-14: returns an error message, or None when the combination is allowed."""
+    if com_saldo:
+        if forma_pagamento not in (CARTAO_PRE_PAGO, DINHEIRO):
+            return "Despesa paga com saldo usa cartão pré-pago ou dinheiro."
+        return None
     if not moeda_estrangeira(moeda):
         return None
     if not forma_pagamento:

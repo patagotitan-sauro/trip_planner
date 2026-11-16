@@ -148,6 +148,17 @@ def test_payment_method_rules_by_currency_and_situation(situacao, moeda, forma, 
     assert (mensagem is not None) is erro
 
 
+@pytest.mark.parametrize("situacao", ["realizada", "planejada"])
+@pytest.mark.parametrize("forma", ["cartao_pre_pago", "dinheiro"])
+def test_balance_payment_is_allowed_in_foreign_currency_even_when_realized(situacao, forma):
+    assert despesas.validar_forma_de_pagamento(situacao, "USD", forma, com_saldo=True) is None
+
+
+@pytest.mark.parametrize("forma", ["cartao_credito", "cartao_debito", "pix", ""])
+def test_balance_payment_refuses_other_payment_methods(forma):
+    assert despesas.validar_forma_de_pagamento("realizada", "USD", forma, com_saldo=True)
+
+
 @dataclass
 class DespesaFalsa:
     valor_brl: Decimal | None
