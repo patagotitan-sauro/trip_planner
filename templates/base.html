@@ -13,6 +13,7 @@
     <nav>
       <ul>
         <li><a href="{% url 'viagens:inicio' %}"><strong>Planejador de Viagens</strong></a></li>
+        {% if user.is_authenticated %}<li><a href="{% url 'planejamento:inicio' %}">Planejamento</a></li>{% endif %}
       </ul>
       {% if user.is_authenticated %}
       <ul>

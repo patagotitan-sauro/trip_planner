@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.viagens",
     "apps.despesas",
     "apps.saldos",
+    "apps.planejamento",
 ]
 
 MIDDLEWARE = [
