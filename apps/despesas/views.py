@@ -3,6 +3,7 @@ from django.db.models import F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.viagens.cotacao import pediu_sugestao, sugerir_no_formulario
 from apps.viagens.models import Viagem
 from servicos.despesas import PLANEJADA, REALIZADA, total_em_brl, total_iof
 from servicos.planejamento import contadas_no_total
@@ -45,12 +46,13 @@ def lista(request: HttpRequest, viagem_pk: int) -> HttpResponse:
 def _formulario(
     request: HttpRequest, viagem: Viagem, despesa: Despesa | None, titulo: str, initial=None
 ) -> HttpResponse:
-    form = DespesaForm(
-        request.POST if request.method == "POST" else None,
-        instance=despesa,
-        viagem=viagem,
-        initial=initial,
-    )
+    if pediu_sugestao(request):
+        # An unchecked box is not posted, so it must not fall back to the saved value.
+        initial = {"cancelavel": False, **sugerir_no_formulario(request)}
+        dados = None
+    else:
+        dados = request.POST if request.method == "POST" else None
+    form = DespesaForm(dados, instance=despesa, viagem=viagem, initial=initial)
     if form.is_valid():
         form.save()
         messages.success(request, "Despesa salva.")

@@ -20,8 +20,10 @@
     </label>
   {% endfor %}
   <p><small>O IOF é calculado ao salvar, conforme a moeda e a forma de pagamento.</small></p>
+  <p><small>"Sugerir cotação" busca no Frankfurter a cotação do dia da despesa (ou a mais recente, sem data) e preenche o campo; você pode editá-la antes de salvar.</small></p>
   <div role="group">
     <button type="submit">Salvar</button>
+    <button type="submit" name="sugerir_cotacao" value="1" class="secondary outline">Sugerir cotação</button>
     <a href="{% url 'despesas:lista' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
   </div>
 </form>

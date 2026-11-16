@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.despesas.models import Categoria, Despesa
 from apps.viagens.models import AtividadeRoteiro, EstadoViagem, Viagem
+from servicos.integracoes.cotacao import CotacaoIndisponivel
 
 
 @pytest.fixture
@@ -427,3 +428,119 @@ def test_turning_a_cancelable_cost_into_an_expense_clears_the_deadline(logado, v
     despesa.refresh_from_db()
     assert not despesa.cancelavel
     assert despesa.data_limite_cancelamento is None
+
+
+def _sugerir(client, viagem, dados, url=None):
+    url = url or reverse("despesas:criar", args=[viagem.pk])
+    return client.post(url, {**dados, "sugerir_cotacao": "1"})
+
+
+def test_suggest_button_fills_the_rate_and_keeps_the_other_fields(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    dados = _dados(categoria, moeda="usd", forma_pagamento="cartao_credito", data="2026-03-12")
+
+    response = _sugerir(logado, viagem, dados)
+
+    form = response.context["form"]
+    assert response.status_code == 200
+    assert form["cotacao"].value() == "5,6628"
+    assert form["descricao"].value() == "Jantar"
+    assert form["valor_original"].value() == "100,00"
+    assert form["moeda"].value() == "usd"
+    assert not form.errors
+    assert not Despesa.objects.exists()
+    assert "Cotação sugerida de 13/11/2026: R$ 5,6628 por USD" in response.content.decode()
+
+
+def test_suggestion_uses_the_expense_date_unless_it_is_missing_or_in_the_future(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    for data in ("2026-03-12", "", "2999-01-01"):
+        _sugerir(logado, viagem, _dados(categoria, moeda="USD", data=data))
+
+    assert provedor_de_cotacao.chamadas == [
+        ("USD", date(2026, 3, 12)),
+        ("USD", None),
+        ("USD", None),
+    ]
+
+
+def test_failed_suggestion_shows_the_message_and_keeps_what_was_typed(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    provedor_de_cotacao.erro = CotacaoIndisponivel(
+        "Serviço fora do ar. Digite a cotação manualmente."
+    )
+
+    response = _sugerir(logado, viagem, _dados(categoria, moeda="USD", cotacao="9,10"))
+
+    assert response.context["form"]["cotacao"].value() == "9,10"
+    assert "Serviço fora do ar" in response.content.decode()
+
+
+def test_suggestion_for_reais_says_no_rate_is_needed(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    response = _sugerir(logado, viagem, _dados(categoria, moeda="BRL"))
+
+    assert "Reais não precisam de cotação." in response.content.decode()
+    assert provedor_de_cotacao.chamadas == []
+
+
+def test_the_rate_the_user_edits_after_the_suggestion_is_the_one_stored(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    dados = _dados(categoria, moeda="USD", forma_pagamento="cartao_credito")
+    _sugerir(logado, viagem, dados)
+
+    _criar(logado, viagem, {**dados, "cotacao": "5,7000"})
+
+    assert Despesa.objects.get().cotacao == Decimal("5.70000000")
+
+
+def test_suggesting_on_the_edit_page_changes_nothing_in_the_database(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    _criar(
+        logado,
+        viagem,
+        _dados(categoria, moeda="USD", forma_pagamento="cartao_credito", cotacao="5"),
+    )
+    despesa = Despesa.objects.get()
+    url = reverse("despesas:editar", args=[viagem.pk, despesa.pk])
+
+    response = _sugerir(
+        logado,
+        viagem,
+        _dados(categoria, moeda="USD", forma_pagamento="cartao_credito", descricao="Outro"),
+        url,
+    )
+
+    assert response.context["form"]["descricao"].value() == "Outro"
+    despesa.refresh_from_db()
+    assert (despesa.descricao, despesa.cotacao) == ("Jantar", Decimal("5"))
+
+
+def test_unchecked_cancelable_box_stays_unchecked_after_a_suggestion(
+    logado, viagem, categoria, provedor_de_cotacao
+):
+    _criar(
+        logado,
+        viagem,
+        _dados(
+            categoria, situacao="planejada", cancelavel="on", data_limite_cancelamento="2027-02-01"
+        ),
+    )
+    despesa = Despesa.objects.get()
+    url = reverse("despesas:editar", args=[viagem.pk, despesa.pk])
+
+    response = _sugerir(logado, viagem, _dados(categoria, situacao="planejada"), url)
+
+    assert not response.context["form"]["cancelavel"].value()
+
+
+def test_suggest_button_comes_after_save_so_enter_still_saves(logado, viagem):
+    html = logado.get(reverse("despesas:criar", args=[viagem.pk])).content.decode()
+
+    assert html.index(">Salvar<") < html.index('name="sugerir_cotacao"')

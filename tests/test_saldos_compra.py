@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -6,6 +7,7 @@ from django.urls import reverse
 from apps.despesas.models import Despesa, MovimentoSaldo
 from apps.saldos.models import Saldo, TipoSaldo
 from apps.viagens.models import EstadoViagem, Viagem
+from servicos.integracoes.cotacao import CotacaoIndisponivel
 
 
 @pytest.fixture
@@ -154,3 +156,36 @@ def test_purchase_form_requires_login(client, viagem):
 
     assert resposta.status_code == 302
     assert reverse("contas:login") in resposta.url
+
+
+def _sugerir(client, viagem, dados):
+    return client.post(
+        reverse("saldos:comprar", args=[viagem.pk]), {**dados, "sugerir_cotacao": "1"}
+    )
+
+
+def test_suggest_button_fills_the_rate_without_buying_anything(logado, viagem, provedor_de_cotacao):
+    resposta = _sugerir(logado, viagem, _dados(cotacao="", data="2026-03-12"))
+
+    form = resposta.context["form"]
+    assert resposta.status_code == 200
+    assert form["cotacao"].value() == "5,6628"
+    assert form["valor"].value() == "100,00"
+    assert provedor_de_cotacao.chamadas == [("USD", date(2026, 3, 12))]
+    assert not Saldo.objects.exists()
+    assert not Despesa.objects.exists()
+
+
+def test_failed_suggestion_keeps_the_typed_rate(logado, viagem, provedor_de_cotacao):
+    provedor_de_cotacao.erro = CotacaoIndisponivel("Serviço fora do ar.")
+
+    resposta = _sugerir(logado, viagem, _dados(cotacao="4,90"))
+
+    assert resposta.context["form"]["cotacao"].value() == "4,90"
+    assert "Serviço fora do ar." in resposta.content.decode()
+
+
+def test_suggest_button_comes_after_save_so_enter_still_saves(logado, viagem):
+    html = logado.get(reverse("saldos:comprar", args=[viagem.pk])).content.decode()
+
+    assert html.index(">Salvar<") < html.index('name="sugerir_cotacao"')
