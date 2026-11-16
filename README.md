@@ -11,11 +11,13 @@ A family web app to study possible trips and decide which one to take, manage th
 - IOF and the BRL value are computed and stored when an expense is recorded; IOF rates are set per trip.
 - Expense list per trip with BRL totals, planned and realized separately.
 - Prepaid card and cash balances per trip: register a purchase or load, pay or reserve expenses with a balance (counted at the average cost), and close leftover balances when completing the trip.
-- Optional budget per trip.
+- Optional budget per trip, with the remaining value shown against the planned costs.
+- Planning page: planned totals per year and the cancelable costs by deadline.
+- History: realized total of each completed trip and of each year.
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
 
-Planned (see [docs/roadmap.md](docs/roadmap.md)): planning and history totals, exchange-rate suggestion via Frankfurter, production setup.
+Planned (see [docs/roadmap.md](docs/roadmap.md)): exchange-rate suggestion via Frankfurter, production setup.
 
 ## Technology stack
 
@@ -78,7 +80,7 @@ Never run `docker compose down -v`: it deletes the database volume.
 ## Project structure
 
 ```
-apps/        Django apps: contas (login), viagens, despesas, saldos
+apps/        Django apps: contas (login), viagens, despesas, saldos, planejamento
 config/      Django settings, URLs, WSGI/ASGI
 servicos/    Business rules (pure Python) and integrations/
 templates/   Base template

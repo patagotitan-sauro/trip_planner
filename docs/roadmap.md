@@ -54,10 +54,11 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 3.
 
 ## Phase 5: Planning and history
-- [ ] Planned totals per year (RN-23).
-- [ ] Budget remaining (RN-19).
-- [ ] Cancelable expenses with a deadline (RN-20).
-- [ ] History totals for completed trips (RN-06).
+- [x] Rules in `servicos/planejamento.py`: totals per year, budget remaining, deadline order and validation, trip total that leaves out the purchase or load (RN-06, RN-19, RN-20, RN-23).
+- [x] Planned totals per year (RN-23, RF-17): the "Planejamento" page (new app `planejamento`, no models) lists trips in planning by end-date year, with the planned total of each trip and of each year. Stand-by trips are left out.
+- [x] Budget remaining (RN-19, RF-17): budget minus planned costs only, shown on the planning page, the trip page and the trip card for trips with a budget (not completed ones); over budget is flagged.
+- [x] Cancelable expenses with a deadline (RN-20, RF-10, RF-18): `Despesa.cancelavel` and `data_limite_cancelamento` (schema confirmed, migration 0007), the checkbox and date in the expense form, and the list ordered by deadline on the planning page, with expired deadlines marked. Marking a cost as an expense clears the mark.
+- [x] History totals for completed trips (RN-06, RN-23, RF-19): realized total on each completed trip and per year on the trips list (follows the national/international filter).
 - Depends on: Phase 3.
 
 ## Phase 6: Exchange-rate API (`servicos/integracoes/`)
