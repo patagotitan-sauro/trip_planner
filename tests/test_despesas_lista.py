@@ -46,6 +46,10 @@ def test_empty_list_says_there_is_nothing_yet(logado, viagem):
     assert "Despesas realizadas" in html
 
 
+def test_list_links_to_the_balance_purchase(logado, viagem):
+    assert reverse("saldos:comprar", args=[viagem.pk]) in _html(logado, viagem)
+
+
 def test_planned_and_realized_are_listed_separately_with_their_own_totals(
     logado, viagem, categoria
 ):

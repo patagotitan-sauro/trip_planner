@@ -11,6 +11,7 @@
 <p>
   <a href="{% url 'despesas:criar' viagem.pk %}?situacao=planejada" role="button" class="outline">Novo custo planejado</a>
   <a href="{% url 'despesas:criar' viagem.pk %}?situacao=realizada" role="button" class="outline">Nova despesa realizada</a>
+  <a href="{% url 'saldos:comprar' viagem.pk %}" role="button" class="outline">Comprar moeda ou carregar cartão</a>
   <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Voltar à viagem</a>
 </p>
 
