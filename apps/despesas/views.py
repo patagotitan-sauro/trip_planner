@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.viagens.models import Viagem
 from servicos.despesas import PLANEJADA, REALIZADA, total_em_brl, total_iof
+from servicos.planejamento import contadas_no_total
 
 from .forms import DespesaForm
-from .models import Despesa, MovimentoSaldo, SituacaoDespesa
+from .models import Despesa, SituacaoDespesa
 
 
 def _bloqueada_por_saldo(request: HttpRequest, despesa: Despesa) -> bool:
@@ -27,8 +28,7 @@ def lista(request: HttpRequest, viagem_pk: int) -> HttpResponse:
     grupos = []
     for situacao, titulo in ((PLANEJADA, "Custos planejados"), (REALIZADA, "Despesas realizadas")):
         itens = [despesa for despesa in despesas if despesa.situacao == situacao]
-        # The cost of a purchase or load is already inside the balance (RN-14), so it is not summed.
-        contados = [d for d in itens if d.movimento_saldo != MovimentoSaldo.COMPRA]
+        contados = contadas_no_total(itens)
         grupos.append(
             {
                 "situacao": situacao,
