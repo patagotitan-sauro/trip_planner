@@ -18,7 +18,9 @@
     {% endfor %}
   </p>
   {% if viagem.orcamento is not None %}
-    <footer><small>Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}</small></footer>
+    <footer><small>Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}
+      {% if viagem.situacao_orcamento %}| {% include "viagens/_orcamento.html" with situacao_orcamento=viagem.situacao_orcamento %}{% endif %}
+    </small></footer>
   {% endif %}
   <footer><a href="{% url 'viagens:editar' viagem.pk %}">Editar</a></footer>
 </article>

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from decimal import Decimal
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
@@ -7,30 +6,25 @@ from django.utils import timezone
 
 from apps.despesas.models import Despesa, SituacaoDespesa
 from apps.viagens.models import EstadoViagem, Viagem
-from servicos.planejamento import ordenar_por_prazo, prazo_vencido, totais_por_ano, valor_restante
+from servicos.planejamento import ordenar_por_prazo, prazo_vencido, totais_por_ano
 
-from .totais import total_planejado
+from .totais import Orcamento, orcamento_da_viagem
 
 
 @dataclass
 class LinhaDaViagem:
     viagem: Viagem
-    planejado: Decimal
-    restante: Decimal | None
-
-    @property
-    def excesso(self) -> Decimal | None:
-        return -self.restante if self.restante is not None and self.restante < 0 else None
+    orcamento: Orcamento
 
 
 def inicio(request: HttpRequest) -> HttpResponse:
     viagens = Viagem.objects.filter(estado=EstadoViagem.PLANEJAMENTO).prefetch_related("despesas")
-    linhas = []
-    for viagem in viagens.order_by("data_inicio", "nome"):
-        planejado = total_planejado(viagem)
-        linhas.append(LinhaDaViagem(viagem, planejado, valor_restante(viagem.orcamento, planejado)))
+    linhas = [
+        LinhaDaViagem(viagem, orcamento_da_viagem(viagem))
+        for viagem in viagens.order_by("data_inicio", "nome")
+    ]
 
-    totais = totais_por_ano((linha.viagem.data_fim, linha.planejado) for linha in linhas)
+    totais = totais_por_ano((linha.viagem.data_fim, linha.orcamento.planejado) for linha in linhas)
     anos = [
         {
             "ano": ano,

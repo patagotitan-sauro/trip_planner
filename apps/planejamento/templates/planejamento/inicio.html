@@ -23,12 +23,12 @@
           {% for linha in grupo.linhas %}
           <tr>
             <td><a href="{% url 'viagens:detalhe' linha.viagem.pk %}">{{ linha.viagem.nome }}</a></td>
-            <td>R$ {{ linha.planejado|floatformat:"2g" }}</td>
+            <td>R$ {{ linha.orcamento.planejado|floatformat:"2g" }}</td>
             <td>{% if linha.viagem.orcamento is not None %}R$ {{ linha.viagem.orcamento|floatformat:"2g" }}{% else %}-{% endif %}</td>
             <td>
-              {% if linha.restante is None %}-
-              {% elif linha.excesso %}<mark>Estourado em R$ {{ linha.excesso|floatformat:"2g" }}</mark>
-              {% else %}R$ {{ linha.restante|floatformat:"2g" }}{% endif %}
+              {% if linha.orcamento.restante is None %}-
+              {% elif linha.orcamento.excesso %}<mark>Estourado em R$ {{ linha.orcamento.excesso|floatformat:"2g" }}</mark>
+              {% else %}R$ {{ linha.orcamento.restante|floatformat:"2g" }}{% endif %}
             </td>
           </tr>
           {% endfor %}

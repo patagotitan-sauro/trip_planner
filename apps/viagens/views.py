@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.planejamento.totais import orcamento_a_mostrar
 from apps.saldos.encerramento import encerrar_saldos, saldos_a_encerrar
 from servicos.classificacao import classificar_viagem
 from servicos.viagens import (
@@ -42,8 +43,9 @@ def inicio(request: HttpRequest) -> HttpResponse:
         tipo = ""
 
     viagens = []
-    for viagem in Viagem.objects.prefetch_related("destinos"):
+    for viagem in Viagem.objects.prefetch_related("destinos", "despesas"):
         viagem.tipo = _tipo_da_viagem(viagem)
+        viagem.situacao_orcamento = orcamento_a_mostrar(viagem)
         if tipo and viagem.tipo != tipo:
             continue
         viagens.append(viagem)
@@ -79,7 +81,9 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
-    viagem = get_object_or_404(Viagem.objects.prefetch_related("destinos", "atividades"), pk=pk)
+    viagem = get_object_or_404(
+        Viagem.objects.prefetch_related("destinos", "atividades", "despesas"), pk=pk
+    )
     form = DestinoForm(request.POST if request.method == "POST" else None)
     if form.is_valid():
         form.instance.viagem = viagem
@@ -90,6 +94,7 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     contexto = {
         "viagem": viagem,
         "form": form,
+        "situacao_orcamento": orcamento_a_mostrar(viagem),
         "roteiro": agrupar_roteiro(list(viagem.atividades.all()), viagem.estado),
         "pode_excluir": pode_excluir_viagem(viagem.estado),
         "iof_credito": viagem.aliquota_iof_credito * 100,

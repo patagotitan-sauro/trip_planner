@@ -1,0 +1,3 @@
+Planejado: R$ {{ situacao_orcamento.planejado|floatformat:"2g" }} |
+{% if situacao_orcamento.excesso %}<mark>Estourado em R$ {{ situacao_orcamento.excesso|floatformat:"2g" }}</mark>
+{% else %}Restante: R$ {{ situacao_orcamento.restante|floatformat:"2g" }}{% endif %}
