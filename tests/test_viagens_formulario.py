@@ -158,7 +158,12 @@ def test_edit_unknown_trip_returns_404(logado):
 
 
 def test_list_links_to_create_and_edit(logado):
-    viagem = Viagem.objects.create(nome="Japão", estado=EstadoViagem.STAND_BY)
+    viagem = Viagem.objects.create(
+        nome="Japão",
+        estado=EstadoViagem.PLANEJAMENTO,
+        data_inicio=date(2027, 3, 1),
+        data_fim=date(2027, 3, 10),
+    )
 
     html = logado.get(reverse("viagens:inicio")).content.decode()
 

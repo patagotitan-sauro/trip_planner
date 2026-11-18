@@ -7,6 +7,7 @@ app_name = "viagens"
 urlpatterns = [
     path("", views.inicio, name="inicio"),
     path("viagens/nova/", views.criar, name="criar"),
+    path("viagens/stand-by/", views.stand_by, name="stand_by"),
     path("viagens/<int:pk>/editar/", views.editar, name="editar"),
     path("viagens/<int:pk>/", views.detalhe, name="detalhe"),
     path("viagens/<int:pk>/excluir/", views.excluir, name="excluir"),

@@ -20,6 +20,11 @@ def total_realizado(viagem: Viagem) -> Decimal:
     )
 
 
+def total_global(viagem: Viagem) -> Decimal:
+    """Realized plus planned total in BRL; purchases and loads stay out of both (RN-14)."""
+    return total_realizado(viagem) + total_planejado(viagem)
+
+
 @dataclass(frozen=True)
 class Orcamento:
     planejado: Decimal

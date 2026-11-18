@@ -76,6 +76,7 @@ Rules for every phase (from AGENTS.md):
 - [ ] The production container can reach `api.frankfurter.dev` over HTTPS (rate suggestion).
 
 ## Backlog (deferred, no phase yet)
+- [x] Trip list UX (done out of sequence, branch `ux-improvements`): a compact table with one row per trip (name, start, end, total; newest first; "Editar" only for trips in planning); stand-by trips moved to their own page ("Viagens em stand-by", with the type filter) and a "Custo global" (realized plus planned, purchases and loads not counted twice, RN-14) on each planning or stand-by trip. The yearly totals (RN-23) are unchanged.
 - [x] Change or delete a balance purchase or load (RN-21): from the expense list; amount, rate and date can change (type and currency cannot, and the IOF rate stays as recorded); allowed only while the balance is open and nothing was spent from it, and not below what planned costs reserve. Deleting the only purchase removes the balance.
 - [ ] Delete expenses and other posted data, in the screens that create them (RN-21): still open for balance uses and closings.
 

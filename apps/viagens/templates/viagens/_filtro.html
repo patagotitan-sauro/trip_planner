@@ -1,0 +1,6 @@
+<div role="group" aria-label="Filtrar por tipo">
+  <a href="{{ url_lista }}" role="button" class="compacto{% if tipo %} outline secondary{% endif %}">Todas</a>
+  {% for chave, nome in tipos.items %}
+    <a href="?tipo={{ chave }}" role="button" class="compacto{% if tipo != chave %} outline secondary{% endif %}">{{ nome }}</a>
+  {% endfor %}
+</div>

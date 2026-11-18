@@ -38,10 +38,6 @@ def _detalhe(client, viagem):
     return client.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
 
 
-def _lista(client):
-    return client.get(reverse("viagens:inicio")).content.decode()
-
-
 def test_detail_shows_planned_total_and_remaining_budget(logado, categoria):
     viagem = _viagem()
     _despesa(viagem, categoria, "350.25")
@@ -92,22 +88,3 @@ def test_completed_trip_does_not_show_remaining_value(logado, categoria):
     _despesa(viagem, categoria, "200.00")
 
     assert "Restante" not in _detalhe(logado, viagem)
-
-
-def test_trip_card_shows_remaining_budget(logado, categoria):
-    viagem = _viagem()
-    _despesa(viagem, categoria, "250.00")
-
-    html = _lista(logado)
-
-    assert "Orçamento: R$ 1.000,00" in html
-    assert "Restante: R$ 750,00" in html
-
-
-def test_completed_trip_card_shows_only_the_budget(logado):
-    _viagem(EstadoViagem.CONCLUIDA)
-
-    html = _lista(logado)
-
-    assert "Orçamento: R$ 1.000,00" in html
-    assert "Restante" not in html

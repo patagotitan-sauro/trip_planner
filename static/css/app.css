@@ -1,3 +1,10 @@
+/* Smaller button (about 60% of Pico's height); the padding is set directly because Pico
+   widens it inside role="group". */
+.compacto[role="button"] {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+}
+
 /* Pico has no red button, so the danger color is defined here through its variables. */
 .perigo {
   --pico-background-color: #c62828;

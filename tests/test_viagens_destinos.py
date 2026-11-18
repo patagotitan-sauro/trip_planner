@@ -141,6 +141,6 @@ def test_cannot_remove_a_destination_through_another_trip(logado):
 def test_trip_card_links_to_the_detail_page(logado):
     viagem = _viagem()
 
-    html = logado.get(reverse("viagens:inicio")).content.decode()
+    html = logado.get(reverse("viagens:stand_by")).content.decode()
 
     assert reverse("viagens:detalhe", args=[viagem.pk]) in html

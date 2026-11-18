@@ -37,8 +37,15 @@ def test_groups_trips_by_state_and_completed_by_end_year_newest_first():
     assert grupos.stand_by == [stand_by]
     assert grupos.planejamento == [planejada]
     assert list(grupos.concluidas_por_ano) == [2025, 2023]
-    assert grupos.concluidas_por_ano[2025] == [recente_a, recente_b]
+    assert grupos.concluidas_por_ano[2025] == [recente_b, recente_a]
     assert grupos.concluidas_por_ano[2023] == [velha]
+
+
+def test_planning_trips_are_listed_with_the_latest_end_date_first():
+    cedo = ViagemFalsa("Chile", "planejamento", date(2026, 12, 27))
+    tarde = ViagemFalsa("Manaus", "planejamento", date(2027, 1, 14))
+
+    assert viagens.agrupar_viagens([cedo, tarde]).planejamento == [tarde, cedo]
 
 
 def test_grouping_an_empty_list_gives_empty_groups():

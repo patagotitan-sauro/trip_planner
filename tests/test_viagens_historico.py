@@ -50,7 +50,7 @@ def test_completed_trip_shows_its_realized_total_with_iof(logado, categoria):
     _despesa(viagem, categoria, "100.00", iof="3.50")
     _despesa(viagem, categoria, "50.00")
 
-    assert "Total realizado: R$ 153,50" in _lista(logado)
+    assert "<td>R$ 153,50</td>" in _lista(logado)
 
 
 def test_planned_costs_are_not_part_of_the_realized_total(logado, categoria):
@@ -60,7 +60,7 @@ def test_planned_costs_are_not_part_of_the_realized_total(logado, categoria):
 
     html = _lista(logado)
 
-    assert "Total realizado: R$ 100,00" in html
+    assert "<td>R$ 100,00</td>" in html
     assert "900" not in html
 
 
@@ -77,13 +77,13 @@ def test_realized_total_leaves_out_the_purchase_and_keeps_the_closing(logado, ca
     _despesa(viagem, categoria, "500.00", movimento_saldo="compra", saldo=saldo)
     _despesa(viagem, categoria, "120.00", movimento_saldo="encerramento", saldo=saldo)
 
-    assert "Total realizado: R$ 120,00" in _lista(logado)
+    assert "<td>R$ 120,00</td>" in _lista(logado)
 
 
 def test_completed_trip_without_expenses_has_a_zero_total(logado):
     _concluida("Manaus", date(2024, 5, 1))
 
-    assert "Total realizado: R$ 0,00" in _lista(logado)
+    assert "<td>R$ 0,00</td>" in _lista(logado)
 
 
 def test_year_heading_shows_the_sum_of_its_trips_newest_year_first(logado, categoria):

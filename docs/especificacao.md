@@ -118,7 +118,7 @@ Cada requisito cita as regras de negócio em que se baseia. Todas as telas exige
 
 **Viagens**
 
-- RF-04: lista de viagens em três grupos: stand-by, em planejamento e concluídas, estas agrupadas por ano. Cada viagem mostra o rótulo nacional ou internacional, e a lista pode ser filtrada por ele (RN-02, RN-18, RN-23).
+- RF-04: lista de viagens em planejamento e concluídas, estas agrupadas por ano, em tabelas com uma linha por viagem: nome, data de início, data de fim e valor, com o link "Editar" apenas nas viagens em planejamento (as concluídas e as em stand-by não têm; elas são editadas pela página da viagem). Dentro de cada tabela, a viagem que termina por último vem primeiro. As viagens em stand-by ficam em uma página própria, "Viagens em stand-by", acessível por um link na lista, com a mesma tabela e as mais recentemente criadas primeiro. As duas páginas podem ser filtradas por viagens nacionais ou internacionais. Cada viagem em planejamento ou em stand-by mostra o "Custo global" em BRL: o realizado mais o planejado, sem contar de novo a compra ou a carga de saldo; a concluída mostra o total realizado (RN-02, RN-14, RN-18, RN-23).
 - RF-05: criar e editar viagem com nome, datas de início e fim (opcionais em stand-by), orçamento opcional e alíquotas de IOF. Ao criar, o usuário informa também o primeiro destino, com país (padrão: Brasil) e cidade (RN-01, RN-03, RN-12, RN-19).
 - RF-06: acrescentar outros destinos de uma viagem pelo botão "Acrescentar novo destino", sempre com país (padrão: Brasil) e cidade, e remover destinos (RN-01).
 - RF-07: montar o roteiro por data, ou por dia numerado em stand-by, com atividades em cada dia (RN-18, RN-24).

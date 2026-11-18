@@ -4,7 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.planejamento.totais import orcamento_a_mostrar, total_realizado
+from apps.planejamento.totais import orcamento_a_mostrar, total_global, total_realizado
 from apps.saldos.encerramento import encerrar_saldos, saldos_a_encerrar
 from servicos.classificacao import classificar_viagem
 from servicos.planejamento import totais_por_ano
@@ -38,20 +38,29 @@ def _tipo_da_viagem(viagem: Viagem) -> str | None:
     return classificar_viagem(codigos) if codigos else None
 
 
-def inicio(request: HttpRequest) -> HttpResponse:
+def _tipo_do_filtro(request: HttpRequest) -> str:
     tipo = request.GET.get("tipo", "")
-    if tipo not in TIPOS:
-        tipo = ""
+    return tipo if tipo in TIPOS else ""
 
+
+def _viagens_da_lista(tipo: str, queryset) -> list[Viagem]:
+    """Trips with the list data (type for the filter, totals), filtered by type (RN-02)."""
     viagens = []
-    for viagem in Viagem.objects.prefetch_related("destinos", "despesas"):
+    for viagem in queryset.prefetch_related("destinos", "despesas"):
         viagem.tipo = _tipo_da_viagem(viagem)
-        viagem.situacao_orcamento = orcamento_a_mostrar(viagem)
         if viagem.estado == CONCLUIDA:
             viagem.total_realizado = total_realizado(viagem)
+        else:
+            viagem.custo_global = total_global(viagem)
         if tipo and viagem.tipo != tipo:
             continue
         viagens.append(viagem)
+    return viagens
+
+
+def inicio(request: HttpRequest) -> HttpResponse:
+    tipo = _tipo_do_filtro(request)
+    viagens = _viagens_da_lista(tipo, Viagem.objects.exclude(estado=STAND_BY))
 
     grupos = agrupar_viagens(viagens)
     totais = totais_por_ano(
@@ -72,6 +81,14 @@ def inicio(request: HttpRequest) -> HttpResponse:
         "tipos": TIPOS,
     }
     return render(request, "viagens/inicio.html", contexto)
+
+
+def stand_by(request: HttpRequest) -> HttpResponse:
+    tipo = _tipo_do_filtro(request)
+    # Stand-by trips have no dates, so the newest one created comes first.
+    viagens = _viagens_da_lista(tipo, Viagem.objects.filter(estado=STAND_BY).order_by("-pk"))
+    contexto = {"viagens": viagens, "tipo": tipo, "tipos": TIPOS}
+    return render(request, "viagens/stand_by.html", contexto)
 
 
 def criar(request: HttpRequest) -> HttpResponse:

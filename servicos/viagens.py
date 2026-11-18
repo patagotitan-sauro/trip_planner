@@ -20,7 +20,10 @@ class GruposDeViagens[T]:
 
 
 def agrupar_viagens[T: ComEstadoEFim](viagens: list[T]) -> GruposDeViagens[T]:
-    """RN-18, RN-23: completed trips grouped by end-date year, newest year first."""
+    """RN-18, RN-23: completed trips grouped by end-date year, newest year first.
+
+    Inside planning and inside each year, the trip that ends last comes first.
+    """
     grupos: GruposDeViagens[T] = GruposDeViagens()
     por_ano: dict[int, list[T]] = {}
     for viagem in viagens:
@@ -34,8 +37,15 @@ def agrupar_viagens[T: ComEstadoEFim](viagens: list[T]) -> GruposDeViagens[T]:
             por_ano.setdefault(viagem.data_fim.year, []).append(viagem)
         else:
             raise ValueError(f"Estado de viagem desconhecido: {viagem.estado}")
-    grupos.concluidas_por_ano = dict(sorted(por_ano.items(), reverse=True))
+    grupos.planejamento = _mais_recentes_primeiro(grupos.planejamento)
+    grupos.concluidas_por_ano = {
+        ano: _mais_recentes_primeiro(por_ano[ano]) for ano in sorted(por_ano, reverse=True)
+    }
     return grupos
+
+
+def _mais_recentes_primeiro[T: ComEstadoEFim](viagens: list[T]) -> list[T]:
+    return sorted(viagens, key=lambda viagem: viagem.data_fim or date.min, reverse=True)
 
 
 def validar_datas_da_viagem(

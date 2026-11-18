@@ -47,13 +47,13 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
 | `apps/contas/` | Login and logout with Django auth (no models). Accounts are created by the admin. |
-| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations), the trip list and the confirmation screens for state changes and deletion. |
+| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations), the trip list (one table row per trip with start, end and total, newest first; planning and completed; planning and stand-by trips show their "Custo global"), the separate stand-by list and the confirmation screens for state changes and deletion. |
 | `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
 | `apps/despesas/` | Expense categories and expenses: models and migrations, plus the screens to list, create, edit and delete the expenses of a trip (the IOF and BRL value are computed on save by `servicos/despesas.py`). |
 | `apps/saldos/` | Prepaid card and cash balances of a trip (`Saldo`: type, currency, remaining amount and BRL cost). Models and migrations, plus the form to buy currency or load a prepaid card (it creates the `Saldo` and the realized expense with IOF) and the screens to change or delete a purchase while nothing was spent from the balance (`compras.py` holds the checks and rebuilds the balance from its purchases); `encerramento.py` closes the leftover balances when the trip is completed; expenses link to a balance through `Despesa.saldo` and `movimento_saldo`. |
-| `apps/planejamento/` | The "Planejamento" page: planned totals per year with the budget remaining of each trip, and the cancelable costs ordered by deadline (no models). `totais.py` computes the planned and realized total and the budget of a trip for the other screens. |
+| `apps/planejamento/` | The "Planejamento" page: planned totals per year with the budget remaining of each trip, and the cancelable costs ordered by deadline (no models). `totais.py` computes the planned, realized and global (planned plus realized) total and the budget of a trip for the other screens. |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs behind an interface. `cotacao.py` defines the exchange-rate interface (`ProvedorDeCotacao`) and its result and error; `frankfurter.py` is the client for `api.frankfurter.dev` (standard library, https only, no key). |
 | `servicos/cotacao.py` | Rate suggestion rule: validates the currency, picks the expense date's rate or the latest one, and asks the provider (RN-08). |
