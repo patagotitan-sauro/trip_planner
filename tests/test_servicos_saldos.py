@@ -9,6 +9,8 @@ from servicos.saldos import (
     custo_do_uso,
     custo_medio,
     disponivel,
+    motivo_de_bloqueio_da_compra,
+    recompor_saldo,
     registrar_compra,
     registrar_uso,
 )
@@ -135,3 +137,46 @@ def test_closing_category_depends_on_the_balance_type():
 def test_closing_category_refuses_other_types():
     with pytest.raises(ValueError):
         categoria_de_encerramento("cartao_credito")
+
+
+def test_rebuilding_a_balance_adds_up_its_purchases():
+    estado = recompor_saldo(
+        [(Decimal("100"), Decimal("505.50")), (Decimal("50"), Decimal("303.00"))]
+    )
+
+    assert estado == _estado("150", "808.50")
+
+
+def test_rebuilding_a_balance_without_purchases_is_empty():
+    assert recompor_saldo([]) == EstadoDoSaldo()
+
+
+def _bloqueio(**extra):
+    dados = {
+        "encerrado": False,
+        "ha_uso_realizado": False,
+        "estado_final": _estado("100", "500.00"),
+        "reservado": Decimal(0),
+    }
+    dados.update(extra)
+    return motivo_de_bloqueio_da_compra(**dados)
+
+
+def test_purchase_can_change_while_nothing_was_spent():
+    assert _bloqueio() is None
+
+
+def test_closed_balance_blocks_purchase_changes():
+    assert "encerrado" in _bloqueio(encerrado=True)
+
+
+def test_realized_use_blocks_purchase_changes():
+    assert "pagas com esse saldo" in _bloqueio(ha_uso_realizado=True)
+
+
+def test_reservations_above_the_remaining_amount_block_purchase_changes():
+    assert "reservam" in _bloqueio(reservado=Decimal("100.01"))
+
+
+def test_reservations_equal_to_the_remaining_amount_do_not_block():
+    assert _bloqueio(reservado=Decimal("100")) is None

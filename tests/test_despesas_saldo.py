@@ -58,6 +58,19 @@ def test_balance_question_is_not_offered_without_balances(logado, viagem):
     assert 'name="saldo"' not in html
 
 
+def test_form_points_to_the_purchase_screen_when_there_is_no_balance(logado, viagem):
+    html = logado.get(reverse("despesas:criar", args=[viagem.pk])).content.decode()
+
+    assert reverse("saldos:comprar", args=[viagem.pk]) in html
+
+
+def test_form_does_not_show_the_purchase_hint_when_a_balance_exists(logado, viagem, saldo):
+    html = logado.get(reverse("despesas:criar", args=[viagem.pk])).content.decode()
+
+    assert 'name="saldo"' in html
+    assert reverse("saldos:comprar", args=[viagem.pk]) not in html
+
+
 def test_balance_question_lists_the_open_balances(logado, viagem, saldo):
     html = logado.get(reverse("despesas:criar", args=[viagem.pk])).content.decode()
 

@@ -1,29 +1,34 @@
 {% extends "base.html" %}
 
-{% block titulo %}Comprar moeda ou carregar cartão - Planejador de Viagens{% endblock %}
+{% block titulo %}{% if compra %}Alterar compra ou carga{% else %}Comprar moeda ou carregar cartão{% endif %} - Planejador de Viagens{% endblock %}
 
 {% block conteudo %}
 <hgroup>
-  <h1>Comprar moeda ou carregar cartão</h1>
+  <h1>{% if compra %}Alterar compra ou carga{% else %}Comprar moeda ou carregar cartão{% endif %}</h1>
   <p>{{ viagem.nome }}</p>
 </hgroup>
 
 <form method="post" novalidate>
   {% csrf_token %}
   {% for erro in form.non_field_errors %}<p role="alert"><small>{{ erro }}</small></p>{% endfor %}
+  {% if compra %}<p>{{ compra.saldo }}. <small>O tipo e a moeda não mudam; para trocá-los, exclua a compra e lance outra.</small></p>{% endif %}
   {% for campo in form %}
-    <label>
-      {{ campo.label }}
+    {% if campo.is_hidden %}
       {{ campo }}
-      {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
-    </label>
+    {% else %}
+      <label>
+        {{ campo.label }}
+        {{ campo }}
+        {% for erro in campo.errors %}<small>{{ erro }}</small>{% endfor %}
+      </label>
+    {% endif %}
   {% endfor %}
-  <p><small>O IOF é calculado ao salvar, com a alíquota de cartão pré-pago e dinheiro desta viagem.</small></p>
+  <p><small>O IOF é calculado ao salvar, com a alíquota de cartão pré-pago e dinheiro desta viagem.{% if compra %} Ao alterar, a compra mantém a alíquota com que foi lançada.{% endif %}</small></p>
   <p><small>"Sugerir cotação" busca no Frankfurter a cotação do dia da compra (ou a mais recente, sem data) e preenche o campo; você pode editá-la antes de salvar.</small></p>
   <div role="group">
     <button type="submit">Salvar</button>
     <button type="submit" name="sugerir_cotacao" value="1" class="secondary outline">Sugerir cotação</button>
-    <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Cancelar</a>
+    <a href="{% if compra %}{% url 'despesas:lista' viagem.pk %}{% else %}{% url 'viagens:detalhe' viagem.pk %}{% endif %}" role="button" class="secondary outline">Cancelar</a>
   </div>
 </form>
 {% endblock %}
