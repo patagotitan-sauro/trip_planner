@@ -47,7 +47,7 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
 | `apps/contas/` | Login and logout with Django auth (no models). Accounts are created by the admin. |
-| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations). Also the placeholder home page until the trip list exists. |
+| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations), the trip list and the confirmation screens for state changes and deletion. |
 | `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
@@ -75,7 +75,6 @@ The `__init__.py` files only mark these folders as Python packages.
 | File | Why it exists |
 |---|---|
 | `docs/especificacao.md` | What the app must do (in pt-BR): scope, access, currency, glossary, business rules (RN-xx), open decisions and screen requirements (RF-xx). |
-| `docs/instruction.md` | Data model and how another Django project can reuse a copy of the SQLite database. Reference only, not a requirement of this project. |
 | `docs/roadmap.md` | Step-by-step plan for building the app, one phase per chat. |
 | `docs/project-files.md` | This file. |
 

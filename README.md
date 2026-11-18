@@ -18,7 +18,7 @@ A family web app to study possible trips and decide which one to take, manage th
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
 
-Planned (see [docs/roadmap.md](docs/roadmap.md)): production setup.
+Remaining work (see [docs/roadmap.md](docs/roadmap.md)): production configuration and operations, currency suggestion from the destination country, and deleting posted data that is still deferred.
 
 ## Technology stack
 
@@ -92,6 +92,8 @@ docs/        Specification, roadmap, file guide
 ```
 
 Details: [docs/project-files.md](docs/project-files.md).
+
+The requirements and business rules are in [docs/especificacao.md](docs/especificacao.md). The implementation phases are tracked in [docs/roadmap.md](docs/roadmap.md).
 
 ## Development workflow
 
