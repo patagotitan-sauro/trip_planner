@@ -10,7 +10,7 @@ Check in this order:
 
 1. Money: `float` used for money, rounding outside the single rounding function, splits that do not add up exactly.
 2. Layers: business rules in views or models instead of `servicos/`.
-3. Security: user data not scoped to the logged-in owner, unsafe template output, secrets in code.
+3. Security:  Verify that every view requires authentication. Check for disabled CSRF protection, unsafe template output, hardcoded secrets, and missing server-side input validation. This is a shared family app: authenticated members intentionally access the same trip data, so do not flag missing per-user ownership filtering.
 4. Database: edited or deleted applied migrations, changes that can lose data.
 5. Tests: missing tests for business rules, money edge cases or access to another user's data.
 

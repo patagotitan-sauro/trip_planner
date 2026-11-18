@@ -1,6 +1,6 @@
 ---
 name: django-code-reviewer
-description: Reviews Django code (models, views, services, templates, signals, middleware), recent changes from git, and application performance. Read-only: reports findings, does not edit files.
+description: "Reviews Django code (models, views, services, templates, signals, middleware), recent changes from git, and application performance. Read-only: reports findings, does not edit files."
 tools: ["read", "search", "execute"]
 ---
 
