@@ -4,7 +4,7 @@ import pytest
 from django.db import IntegrityError, transaction
 from django.db.models import RestrictedError
 
-from apps.despesas.models import Categoria, Despesa, MovimentoSaldo, SituacaoDespesa
+from apps.despesas.models import Categoria, Despesa, MovimentoSaldo
 from apps.saldos.models import Saldo, TipoSaldo
 from apps.viagens.models import EstadoViagem, Viagem
 
@@ -38,7 +38,6 @@ def criar_despesa(viagem: Viagem, categoria: Categoria, **campos: object) -> Des
         "descricao": "Compra",
         "valor_original": Decimal("10.00"),
         "moeda": "USD",
-        "situacao": SituacaoDespesa.REALIZADA,
     }
     dados.update(campos)
     return Despesa.objects.create(**dados)
@@ -85,40 +84,6 @@ def test_balance_and_movement_must_come_together(viagem: Viagem, categoria: Cate
         criar_despesa(viagem, categoria, saldo=saldo)
     with pytest.raises(IntegrityError), transaction.atomic():
         criar_despesa(viagem, categoria, movimento_saldo=MovimentoSaldo.USO)
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize("movimento", [MovimentoSaldo.COMPRA, MovimentoSaldo.ENCERRAMENTO])
-def test_purchase_and_closing_must_be_realized(
-    viagem: Viagem, categoria: Categoria, movimento: str
-) -> None:
-    saldo = criar_saldo(viagem)
-
-    with pytest.raises(IntegrityError), transaction.atomic():
-        criar_despesa(
-            viagem,
-            categoria,
-            saldo=saldo,
-            movimento_saldo=movimento,
-            situacao=SituacaoDespesa.PLANEJADA,
-        )
-
-    criar_despesa(viagem, categoria, saldo=saldo, movimento_saldo=movimento)
-
-
-@pytest.mark.django_db
-def test_planned_cost_can_reserve_a_balance(viagem: Viagem, categoria: Categoria) -> None:
-    saldo = criar_saldo(viagem)
-
-    despesa = criar_despesa(
-        viagem,
-        categoria,
-        saldo=saldo,
-        movimento_saldo=MovimentoSaldo.USO,
-        situacao=SituacaoDespesa.PLANEJADA,
-    )
-
-    assert list(saldo.despesas.all()) == [despesa]
 
 
 @pytest.mark.django_db

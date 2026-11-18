@@ -2,6 +2,6 @@
   <td><a href="{% url 'viagens:detalhe' viagem.pk %}">{{ viagem.nome }}</a></td>
   <td>{% if viagem.data_inicio %}{{ viagem.data_inicio|date:"d/m/Y" }}{% else %}&mdash;{% endif %}</td>
   <td>{% if viagem.data_fim %}{{ viagem.data_fim|date:"d/m/Y" }}{% else %}&mdash;{% endif %}</td>
-  <td>R$ {% if viagem.estado == "concluida" %}{{ viagem.total_realizado|floatformat:"2g" }}{% else %}{{ viagem.custo_global|floatformat:"2g" }}{% endif %}</td>
+  <td>R$ {{ viagem.total|floatformat:"2g" }}</td>
   {% if com_edicao %}<td><a href="{% url 'viagens:editar' viagem.pk %}">Editar</a></td>{% endif %}
 </tr>

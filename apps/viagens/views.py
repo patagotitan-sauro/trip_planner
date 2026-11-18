@@ -4,7 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.planejamento.totais import orcamento_a_mostrar, total_global, total_realizado
+from apps.planejamento.totais import total_gasto
 from apps.saldos.encerramento import encerrar_saldos, saldos_a_encerrar
 from servicos.classificacao import classificar_viagem
 from servicos.planejamento import totais_por_ano
@@ -48,10 +48,7 @@ def _viagens_da_lista(tipo: str, queryset) -> list[Viagem]:
     viagens = []
     for viagem in queryset.prefetch_related("destinos", "despesas"):
         viagem.tipo = _tipo_da_viagem(viagem)
-        if viagem.estado == CONCLUIDA:
-            viagem.total_realizado = total_realizado(viagem)
-        else:
-            viagem.custo_global = total_global(viagem)
+        viagem.total = total_gasto(viagem)
         if tipo and viagem.tipo != tipo:
             continue
         viagens.append(viagem)
@@ -64,7 +61,7 @@ def inicio(request: HttpRequest) -> HttpResponse:
 
     grupos = agrupar_viagens(viagens)
     totais = totais_por_ano(
-        (viagem.data_fim, viagem.total_realizado)
+        (viagem.data_fim, viagem.total)
         for por_ano in grupos.concluidas_por_ano.values()
         for viagem in por_ano
     )
@@ -126,11 +123,8 @@ def detalhe(request: HttpRequest, pk: int) -> HttpResponse:
     contexto = {
         "viagem": viagem,
         "form": form,
-        "situacao_orcamento": orcamento_a_mostrar(viagem),
         "roteiro": agrupar_roteiro(list(viagem.atividades.all()), viagem.estado),
         "pode_excluir": pode_excluir_viagem(viagem.estado),
-        "iof_credito": viagem.aliquota_iof_credito * 100,
-        "iof_pre_pago_dinheiro": viagem.aliquota_iof_pre_pago_dinheiro * 100,
         "acoes": [
             (para, ROTULOS_DA_MUDANCA[(viagem.estado, para)])
             for para in estados_de_destino(viagem.estado)

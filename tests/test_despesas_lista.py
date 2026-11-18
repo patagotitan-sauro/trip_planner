@@ -5,6 +5,7 @@ import pytest
 from django.urls import reverse
 
 from apps.despesas.models import Categoria, Despesa
+from apps.saldos.models import Saldo
 from apps.viagens.models import AtividadeRoteiro, EstadoViagem, Viagem
 
 
@@ -23,12 +24,10 @@ def _despesa(viagem, categoria, **extra):
         "viagem": viagem,
         "categoria": categoria,
         "descricao": "Item",
-        "situacao": "realizada",
         "valor_original": Decimal("100.00"),
         "moeda": "BRL",
         "cotacao": Decimal(1),
         "valor_brl": Decimal("100.00"),
-        "valor_iof": Decimal("0.00"),
     }
     dados.update(extra)
     return Despesa.objects.create(**dados)
@@ -41,52 +40,61 @@ def _html(client, viagem):
 def test_empty_list_says_there_is_nothing_yet(logado, viagem):
     html = _html(logado, viagem)
 
-    assert html.count("Nenhum lançamento ainda.") == 2
-    assert "Custos planejados" in html
-    assert "Despesas realizadas" in html
+    assert "Nenhum gasto ainda." in html
 
 
 def test_list_links_to_the_balance_purchase(logado, viagem):
     assert reverse("saldos:comprar", args=[viagem.pk]) in _html(logado, viagem)
 
 
-def test_planned_and_realized_are_listed_separately_with_their_own_totals(
-    logado, viagem, categoria
-):
-    _despesa(viagem, categoria, descricao="Hotel previsto", situacao="planejada")
+def test_list_shows_the_expenses_with_their_total(logado, viagem, categoria):
+    _despesa(viagem, categoria, descricao="Hotel")
     _despesa(
         viagem,
         categoria,
-        descricao="Jantar pago",
+        descricao="Jantar",
         valor_original=Decimal("50.00"),
         valor_brl=Decimal("50.00"),
     )
 
     html = _html(logado, viagem)
 
-    previstos, realizadas = html.split("Despesas realizadas")
-    assert "Hotel previsto" in previstos
-    assert "Jantar pago" not in previstos
-    assert "Jantar pago" in realizadas
-    assert "Total: R$ 100,00" in previstos
-    assert "Total: R$ 50,00" in realizadas
+    assert "Hotel" in html
+    assert "Jantar" in html
+    assert "Total: R$ 150,00" in html
 
 
-def test_total_includes_the_iof_and_shows_it_apart(logado, viagem, categoria):
+def test_list_has_no_iof_and_no_planned_split(logado, viagem, categoria):
+    _despesa(viagem, categoria, moeda="USD", cotacao=Decimal("5"), valor_brl=Decimal("500.00"))
+
+    html = _html(logado, viagem)
+
+    assert "IOF" not in html
+    assert "Custos planejados" not in html
+    assert "Despesas realizadas" not in html
+
+
+def test_unallocated_purchase_is_noted_in_the_total(logado, viagem, categoria):
+    saldo = Saldo.objects.create(
+        viagem=viagem,
+        tipo="dinheiro",
+        moeda="USD",
+        valor_restante=Decimal("100"),
+        custo_restante=Decimal("500.00"),
+    )
     _despesa(
         viagem,
         categoria,
         moeda="USD",
-        cotacao=Decimal("5"),
         valor_brl=Decimal("500.00"),
-        valor_iof=Decimal("17.50"),
-        forma_pagamento="cartao_credito",
+        saldo=saldo,
+        movimento_saldo="compra",
     )
 
     html = _html(logado, viagem)
 
-    assert "Total: R$ 517,50" in html
-    assert "inclui R$ 17,50 de IOF" in html
+    assert "Total: R$ 500,00" in html
+    assert "Inclui R$ 500,00 de compra de moeda estrangeira não alocada" in html
 
 
 def test_row_shows_original_amount_currency_rate_payment_and_category(logado, viagem, categoria):
@@ -166,21 +174,3 @@ def test_deleting_an_expense_goes_back_to_the_list(logado, viagem, categoria):
     response = logado.post(reverse("despesas:excluir", args=[viagem.pk, despesa.pk]))
 
     assert response.url == reverse("despesas:lista", args=[viagem.pk])
-
-
-def test_cancelable_cost_shows_its_deadline(logado, viagem, categoria):
-    _despesa(
-        viagem,
-        categoria,
-        situacao="planejada",
-        cancelavel=True,
-        data_limite_cancelamento=date(2027, 2, 1),
-    )
-
-    assert "Cancelável até 01/02/2027" in _html(logado, viagem)
-
-
-def test_cost_that_is_not_cancelable_shows_no_deadline(logado, viagem, categoria):
-    _despesa(viagem, categoria, situacao="planejada")
-
-    assert "Cancelável" not in _html(logado, viagem)

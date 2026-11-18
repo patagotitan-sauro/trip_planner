@@ -25,17 +25,15 @@ def _concluida(nome, fim, pais="BR"):
     return viagem
 
 
-def _despesa(viagem, categoria, valor, iof="0.00", situacao="realizada", **extra):
+def _despesa(viagem, categoria, valor, **extra):
     dados = {
         "viagem": viagem,
         "categoria": categoria,
         "descricao": "Item",
-        "situacao": situacao,
         "valor_original": Decimal(valor),
         "moeda": "BRL",
         "cotacao": Decimal(1),
         "valor_brl": Decimal(valor),
-        "valor_iof": Decimal(iof),
     }
     dados.update(extra)
     return Despesa.objects.create(**dados)
@@ -45,26 +43,15 @@ def _lista(client, **params):
     return client.get(reverse("viagens:inicio"), params).content.decode()
 
 
-def test_completed_trip_shows_its_realized_total_with_iof(logado, categoria):
-    viagem = _concluida("Floripa", date(2025, 1, 10))
-    _despesa(viagem, categoria, "100.00", iof="3.50")
-    _despesa(viagem, categoria, "50.00")
-
-    assert "<td>R$ 153,50</td>" in _lista(logado)
-
-
-def test_planned_costs_are_not_part_of_the_realized_total(logado, categoria):
+def test_completed_trip_shows_its_total(logado, categoria):
     viagem = _concluida("Floripa", date(2025, 1, 10))
     _despesa(viagem, categoria, "100.00")
-    _despesa(viagem, categoria, "900.00", situacao="planejada")
+    _despesa(viagem, categoria, "50.50")
 
-    html = _lista(logado)
-
-    assert "<td>R$ 100,00</td>" in html
-    assert "900" not in html
+    assert "<td>R$ 150,50</td>" in _lista(logado)
 
 
-def test_realized_total_leaves_out_the_purchase_and_keeps_the_closing(logado, categoria):
+def test_total_counts_the_purchase_once_and_keeps_the_closing(logado, categoria):
     viagem = _concluida("Buenos Aires", date(2025, 1, 10), pais="AR")
     saldo = Saldo.objects.create(
         viagem=viagem,
@@ -77,7 +64,7 @@ def test_realized_total_leaves_out_the_purchase_and_keeps_the_closing(logado, ca
     _despesa(viagem, categoria, "500.00", movimento_saldo="compra", saldo=saldo)
     _despesa(viagem, categoria, "120.00", movimento_saldo="encerramento", saldo=saldo)
 
-    assert "<td>R$ 120,00</td>" in _lista(logado)
+    assert "<td>R$ 500,00</td>" in _lista(logado)
 
 
 def test_completed_trip_without_expenses_has_a_zero_total(logado):
@@ -108,7 +95,7 @@ def test_year_total_follows_the_type_filter(logado, categoria):
     assert "Lisboa" not in html
 
 
-def test_trips_not_completed_show_no_realized_total(logado, categoria):
+def test_planning_trip_shows_its_total_in_the_same_column(logado, categoria):
     viagem = Viagem.objects.create(
         nome="Sul",
         estado=EstadoViagem.PLANEJAMENTO,
@@ -117,4 +104,9 @@ def test_trips_not_completed_show_no_realized_total(logado, categoria):
     )
     _despesa(viagem, categoria, "100.00")
 
-    assert "Total realizado" not in _lista(logado)
+    html = _lista(logado)
+
+    assert "<td>R$ 100,00</td>" in html
+    assert "Total gasto" in html
+    assert "Custo global" not in html
+    assert "Total realizado" not in html

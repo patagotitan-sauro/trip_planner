@@ -119,7 +119,6 @@ def _importar_despesas(
             viagem=viagens[id_viagem],
             categoria=categorias[id_categoria],
             descricao=descricao,
-            situacao=importacao_antiga.situacao_da_despesa(status),
             valor_original=valor_original,
             moeda=moeda,
             cotacao=cotacao_brl(taxa),

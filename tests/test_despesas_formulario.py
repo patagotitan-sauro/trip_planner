@@ -26,7 +26,6 @@ def categoria(db):
 
 def _dados(categoria, **extra):
     dados = {
-        "situacao": "realizada",
         "descricao": "Jantar",
         "categoria": categoria.pk,
         "moeda": "BRL",
@@ -41,16 +40,13 @@ def _criar(client, viagem, dados):
     return client.post(reverse("despesas:criar", args=[viagem.pk]), dados)
 
 
-def test_form_asks_for_brl_by_default_and_shows_the_chosen_situation(logado, viagem):
-    url = reverse("despesas:criar", args=[viagem.pk])
+def test_form_asks_for_brl_by_default_and_has_no_situation_or_iof_fields(logado, viagem):
+    html = logado.get(reverse("despesas:criar", args=[viagem.pk])).content.decode()
 
-    planejada = logado.get(url, {"situacao": "planejada"}).content.decode()
-    realizada = logado.get(url, {"situacao": "realizada"}).content.decode()
-
-    assert 'value="BRL"' in planejada
-    assert "Novo custo planejado" in planejada
-    assert "Nova despesa" in realizada
-    assert '<option value="realizada" selected>' in realizada
+    assert 'value="BRL"' in html
+    assert "Novo gasto" in html
+    for campo in ("situacao", "cancelavel", "IOF"):
+        assert campo not in html
 
 
 def test_form_lists_only_activities_of_this_trip(logado, viagem):
@@ -64,7 +60,7 @@ def test_form_lists_only_activities_of_this_trip(logado, viagem):
     assert "De fora" not in html
 
 
-def test_brl_expense_is_saved_without_iof_and_with_rate_one(logado, viagem, categoria):
+def test_brl_expense_is_saved_with_rate_one(logado, viagem, categoria):
     response = _criar(logado, viagem, _dados(categoria))
 
     assert response.status_code == 302
@@ -72,7 +68,6 @@ def test_brl_expense_is_saved_without_iof_and_with_rate_one(logado, viagem, cate
     despesa = Despesa.objects.get()
     assert despesa.viagem == viagem
     assert (despesa.cotacao, despesa.valor_brl) == (Decimal(1), Decimal("100.00"))
-    assert (despesa.taxa_iof, despesa.valor_iof) == (Decimal(0), Decimal("0.00"))
 
 
 def test_brl_expense_may_have_no_payment_method_and_ignores_a_given_rate(logado, viagem, categoria):
@@ -80,12 +75,9 @@ def test_brl_expense_may_have_no_payment_method_and_ignores_a_given_rate(logado,
 
     despesa = Despesa.objects.get()
     assert despesa.cotacao == Decimal(1)
-    assert despesa.valor_iof == Decimal("0.00")
 
 
-def test_credit_card_expense_in_foreign_currency_converts_and_charges_iof(
-    logado, viagem, categoria
-):
+def test_credit_card_expense_in_foreign_currency_is_converted(logado, viagem, categoria):
     dados = _dados(
         categoria,
         moeda="USD",
@@ -99,51 +91,21 @@ def test_credit_card_expense_in_foreign_currency_converts_and_charges_iof(
     despesa = Despesa.objects.get()
     assert despesa.cotacao == Decimal("5.12345678")
     assert despesa.valor_brl == Decimal("512.35")
-    assert despesa.taxa_iof == Decimal("0.0350")
-    assert despesa.valor_iof == Decimal("17.93")
 
 
-def test_expense_uses_the_iof_rate_of_its_own_trip(logado, viagem, categoria):
-    viagem.aliquota_iof_credito = Decimal("0.0400")
-    viagem.save()
-    dados = _dados(
-        categoria, moeda="EUR", cotacao="6", valor_original="100", forma_pagamento="cartao_credito"
-    )
-
-    _criar(logado, viagem, dados)
-
-    assert Despesa.objects.get().valor_iof == Decimal("24.00")
-
-
-def test_planned_cost_in_cash_uses_the_prepaid_and_cash_rate(logado, viagem, categoria):
-    dados = _dados(
-        categoria,
-        situacao="planejada",
-        moeda="USD",
-        cotacao="5",
-        valor_original="100",
-        forma_pagamento="dinheiro",
-    )
-
-    _criar(logado, viagem, dados)
-
-    despesa = Despesa.objects.get()
-    assert (despesa.taxa_iof, despesa.valor_iof) == (Decimal("0.0110"), Decimal("5.50"))
-
-
-def test_realized_foreign_expense_must_be_paid_by_credit_card(logado, viagem, categoria):
+def test_foreign_expense_without_balance_must_be_paid_by_credit_card(logado, viagem, categoria):
     dados = _dados(categoria, moeda="USD", cotacao="5", forma_pagamento="dinheiro")
 
     response = _criar(logado, viagem, dados)
 
     assert response.status_code == 200
-    assert "só pode ser paga no cartão de crédito" in response.content.decode()
+    assert "só pode ser pago no cartão de crédito" in response.content.decode()
     assert not Despesa.objects.exists()
 
 
 @pytest.mark.parametrize("forma", ["pix", "cartao_debito"])
 def test_debit_and_pix_are_refused_for_foreign_currency(logado, viagem, categoria, forma):
-    dados = _dados(categoria, situacao="planejada", moeda="USD", cotacao="5", forma_pagamento=forma)
+    dados = _dados(categoria, moeda="USD", cotacao="5", forma_pagamento=forma)
 
     response = _criar(logado, viagem, dados)
 
@@ -232,12 +194,12 @@ def test_category_is_required(logado, viagem, categoria):
     assert not Despesa.objects.exists()
 
 
-def test_stand_by_trip_accepts_planned_costs(logado, categoria):
+def test_stand_by_trip_accepts_expenses(logado, categoria):
     viagem = Viagem.objects.create(nome="Japão", estado=EstadoViagem.STAND_BY)
 
-    _criar(logado, viagem, _dados(categoria, situacao="planejada"))
+    _criar(logado, viagem, _dados(categoria))
 
-    assert Despesa.objects.get().situacao == "planejada"
+    assert Despesa.objects.get().viagem == viagem
 
 
 def test_create_for_unknown_trip_returns_404(logado):
@@ -263,10 +225,8 @@ def test_edit_form_shows_the_saved_values(logado, viagem, categoria):
     assert 'value="5,00000000"' in html
 
 
-def test_editing_an_unchanged_expense_keeps_the_stored_iof_rate(logado, viagem, categoria):
+def test_editing_an_expense_recalculates_the_brl_amount(logado, viagem, categoria):
     despesa = _despesa_em_dolar(logado, viagem, categoria)
-    viagem.aliquota_iof_credito = Decimal("0.0500")
-    viagem.save()
     dados = _dados(
         categoria,
         moeda="USD",
@@ -281,34 +241,9 @@ def test_editing_an_unchanged_expense_keeps_the_stored_iof_rate(logado, viagem, 
     despesa.refresh_from_db()
     assert despesa.descricao == "Jantar 2"
     assert despesa.valor_brl == Decimal("1000.00")
-    assert despesa.taxa_iof == Decimal("0.0350")
-    assert despesa.valor_iof == Decimal("35.00")
 
 
-def test_changing_the_payment_method_uses_the_current_trip_rate(logado, viagem, categoria):
-    dados_planejada = _dados(
-        categoria,
-        situacao="planejada",
-        moeda="USD",
-        cotacao="5",
-        valor_original="100",
-        forma_pagamento="cartao_credito",
-    )
-    _criar(logado, viagem, dados_planejada)
-    despesa = Despesa.objects.get()
-    viagem.aliquota_iof_pre_pago_dinheiro = Decimal("0.0200")
-    viagem.save()
-
-    logado.post(
-        reverse("despesas:editar", args=[viagem.pk, despesa.pk]),
-        {**dados_planejada, "forma_pagamento": "dinheiro"},
-    )
-
-    despesa.refresh_from_db()
-    assert (despesa.taxa_iof, despesa.valor_iof) == (Decimal("0.0200"), Decimal("10.00"))
-
-
-def test_changing_the_currency_to_brl_removes_the_iof(logado, viagem, categoria):
+def test_changing_the_currency_to_brl_resets_the_rate(logado, viagem, categoria):
     despesa = _despesa_em_dolar(logado, viagem, categoria)
 
     logado.post(
@@ -317,11 +252,7 @@ def test_changing_the_currency_to_brl_removes_the_iof(logado, viagem, categoria)
     )
 
     despesa.refresh_from_db()
-    assert (despesa.cotacao, despesa.valor_brl, despesa.valor_iof) == (
-        Decimal(1),
-        Decimal("100.00"),
-        Decimal("0.00"),
-    )
+    assert (despesa.cotacao, despesa.valor_brl) == (Decimal(1), Decimal("100.00"))
 
 
 def test_cannot_edit_an_expense_through_another_trip(logado, viagem, categoria):
@@ -359,75 +290,11 @@ def test_cannot_delete_an_expense_through_another_trip(logado, viagem, categoria
     assert Despesa.objects.exists()
 
 
-def test_trip_page_offers_planned_cost_and_realized_expense_entries(logado, viagem):
+def test_trip_page_offers_the_new_expense_entry(logado, viagem):
     html = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
 
-    assert reverse("despesas:criar", args=[viagem.pk]) + "?situacao=planejada" in html
-    assert reverse("despesas:criar", args=[viagem.pk]) + "?situacao=realizada" in html
-
-
-def test_planned_cost_can_be_marked_cancelable_with_a_deadline(logado, viagem, categoria):
-    dados = _dados(
-        categoria,
-        situacao="planejada",
-        cancelavel="on",
-        data_limite_cancelamento="2027-02-01",
-    )
-
-    response = _criar(logado, viagem, dados)
-
-    assert response.status_code == 302
-    despesa = Despesa.objects.get()
-    assert despesa.cancelavel
-    assert despesa.data_limite_cancelamento == date(2027, 2, 1)
-
-
-def test_cancelable_cost_needs_a_deadline(logado, viagem, categoria):
-    response = _criar(logado, viagem, _dados(categoria, situacao="planejada", cancelavel="on"))
-
-    assert response.status_code == 200
-    assert "data_limite_cancelamento" in response.context["form"].errors
-    assert not Despesa.objects.exists()
-
-
-def test_deadline_without_the_cancelable_mark_is_refused(logado, viagem, categoria):
-    dados = _dados(categoria, situacao="planejada", data_limite_cancelamento="2027-02-01")
-
-    response = _criar(logado, viagem, dados)
-
-    assert response.status_code == 200
-    assert "data_limite_cancelamento" in response.context["form"].errors
-
-
-def test_realized_expense_drops_the_cancellation_mark(logado, viagem, categoria):
-    dados = _dados(categoria, cancelavel="on", data_limite_cancelamento="2027-02-01")
-
-    response = _criar(logado, viagem, dados)
-
-    assert response.status_code == 302
-    despesa = Despesa.objects.get()
-    assert not despesa.cancelavel
-    assert despesa.data_limite_cancelamento is None
-
-
-def test_turning_a_cancelable_cost_into_an_expense_clears_the_deadline(logado, viagem, categoria):
-    _criar(
-        logado,
-        viagem,
-        _dados(
-            categoria, situacao="planejada", cancelavel="on", data_limite_cancelamento="2027-02-01"
-        ),
-    )
-    despesa = Despesa.objects.get()
-
-    response = logado.post(
-        reverse("despesas:editar", args=[viagem.pk, despesa.pk]), _dados(categoria)
-    )
-
-    assert response.status_code == 302
-    despesa.refresh_from_db()
-    assert not despesa.cancelavel
-    assert despesa.data_limite_cancelamento is None
+    assert reverse("despesas:criar", args=[viagem.pk]) in html
+    assert "?situacao=" not in html
 
 
 def _sugerir(client, viagem, dados, url=None):
@@ -520,24 +387,6 @@ def test_suggesting_on_the_edit_page_changes_nothing_in_the_database(
     assert response.context["form"]["descricao"].value() == "Outro"
     despesa.refresh_from_db()
     assert (despesa.descricao, despesa.cotacao) == ("Jantar", Decimal("5"))
-
-
-def test_unchecked_cancelable_box_stays_unchecked_after_a_suggestion(
-    logado, viagem, categoria, provedor_de_cotacao
-):
-    _criar(
-        logado,
-        viagem,
-        _dados(
-            categoria, situacao="planejada", cancelavel="on", data_limite_cancelamento="2027-02-01"
-        ),
-    )
-    despesa = Despesa.objects.get()
-    url = reverse("despesas:editar", args=[viagem.pk, despesa.pk])
-
-    response = _sugerir(logado, viagem, _dados(categoria, situacao="planejada"), url)
-
-    assert not response.context["form"]["cancelavel"].value()
 
 
 def test_suggest_button_comes_after_save_so_enter_still_saves(logado, viagem):

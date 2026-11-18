@@ -1,79 +1,67 @@
 {% extends "base.html" %}
 
-{% block titulo %}Despesas de {{ viagem.nome }} - Planejador de Viagens{% endblock %}
+{% block titulo %}Gastos de {{ viagem.nome }} - Planejador de Viagens{% endblock %}
 
 {% block conteudo %}
 <hgroup>
-  <h1>Despesas</h1>
+  <h1>Gastos</h1>
   <p>{{ viagem.nome }}</p>
 </hgroup>
 
 <p>
-  <a href="{% url 'despesas:criar' viagem.pk %}?situacao=planejada" role="button" class="outline">Novo custo planejado</a>
-  <a href="{% url 'despesas:criar' viagem.pk %}?situacao=realizada" role="button" class="outline">Nova despesa realizada</a>
+  <a href="{% url 'despesas:criar' viagem.pk %}" role="button" class="outline">Novo gasto</a>
   <a href="{% url 'saldos:comprar' viagem.pk %}" role="button" class="outline">Comprar moeda ou carregar cartão</a>
   <a href="{% url 'viagens:detalhe' viagem.pk %}" role="button" class="secondary outline">Voltar à viagem</a>
 </p>
 
-{% for grupo in grupos %}
-<section>
-  <h2>{{ grupo.titulo }}</h2>
-  {% if grupo.despesas %}
-    <div class="overflow-auto">
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Categoria</th>
-            <th>Valor original</th>
-            <th>Pagamento</th>
-            <th>Valor em R$</th>
-            <th>IOF em R$</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for despesa in grupo.despesas %}
-          <tr>
-            <td>{% if despesa.data %}{{ despesa.data|date:"d/m/Y" }}{% endif %}</td>
-            <td>
-              {{ despesa.descricao }}
-              {% if despesa.atividade %}<br><small>Atividade: {{ despesa.atividade }}</small>{% endif %}
-              {% if despesa.cancelavel %}<br><small>Cancelável até {{ despesa.data_limite_cancelamento|date:"d/m/Y" }}</small>{% endif %}
-            </td>
-            <td>{{ despesa.categoria }}</td>
-            <td>
-              {{ despesa.valor_original|floatformat:"2g" }} {{ despesa.moeda }}
-              {% if despesa.moeda != "BRL" %}<br><small>cotação {{ despesa.cotacao|floatformat:"4" }}</small>{% endif %}
-            </td>
-            <td>{{ despesa.get_forma_pagamento_display }}</td>
-            <td>{{ despesa.valor_brl|floatformat:"2g" }}</td>
-            <td>{{ despesa.valor_iof|floatformat:"2g" }}</td>
-            <td>
-              {% if not despesa.travada_por_saldo %}
-                <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
-                <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
-              {% elif despesa.movimento_saldo == "compra" %}
-                <a href="{% url 'saldos:editar_compra' viagem.pk despesa.pk %}">Editar</a>
-                <a href="{% url 'saldos:excluir_compra' viagem.pk despesa.pk %}">Excluir</a>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <p>
-      <strong>Total: R$ {{ grupo.total|floatformat:"2g" }}</strong>
-      <small>(inclui R$ {{ grupo.iof|floatformat:"2g" }} de IOF)</small>
-    </p>
-    {% if grupo.fora_do_total %}
-      <p><small>Compras de moeda e cargas de cartão ficam fora do total: o custo delas entra pelas despesas pagas com o saldo e pelo encerramento.</small></p>
-    {% endif %}
-  {% else %}
-    <p>Nenhum lançamento ainda.</p>
+{% if despesas %}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Categoria</th>
+          <th>Valor original</th>
+          <th>Pagamento</th>
+          <th>Valor em R$</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for despesa in despesas %}
+        <tr>
+          <td>{% if despesa.data %}{{ despesa.data|date:"d/m/Y" }}{% endif %}</td>
+          <td>
+            {{ despesa.descricao }}
+            {% if despesa.atividade %}<br><small>Atividade: {{ despesa.atividade }}</small>{% endif %}
+          </td>
+          <td>{{ despesa.categoria }}</td>
+          <td>
+            {{ despesa.valor_original|floatformat:"2g" }} {{ despesa.moeda }}
+            {% if despesa.moeda != "BRL" %}<br><small>cotação {{ despesa.cotacao|floatformat:"4" }}</small>{% endif %}
+          </td>
+          <td>{{ despesa.get_forma_pagamento_display }}</td>
+          <td>{{ despesa.valor_brl|floatformat:"2g" }}</td>
+          <td>
+            {% if not despesa.travada_por_saldo %}
+              <a href="{% url 'despesas:editar' viagem.pk despesa.pk %}">Editar</a>
+              <a href="{% url 'despesas:excluir' viagem.pk despesa.pk %}">Excluir</a>
+            {% elif despesa.movimento_saldo == "compra" %}
+              <a href="{% url 'saldos:editar_compra' viagem.pk despesa.pk %}">Editar</a>
+              <a href="{% url 'saldos:excluir_compra' viagem.pk despesa.pk %}">Excluir</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Total: R$ {{ total|floatformat:"2g" }}</strong></p>
+  {% if nao_alocado %}
+    <p><small>Inclui R$ {{ nao_alocado|floatformat:"2g" }} de compra de moeda estrangeira não alocada (saldo ainda não usado).</small></p>
   {% endif %}
-</section>
-{% endfor %}
+{% else %}
+  <p>Nenhum gasto ainda.</p>
+{% endif %}
 {% endblock %}

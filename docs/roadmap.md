@@ -11,6 +11,13 @@ Rules for every phase (from AGENTS.md):
 ## Done
 - [x] Data layer: viagens and despesas models, IOF and conversion rules, classification, one-time import, backup and restore scripts.
 
+## Scope change: only expenses (no planned/realized, no IOF, no budget)
+Done out of sequence at the owner's request; it supersedes the items below that mention planned costs, IOF, the budget or cancelable costs. Those items stay as history.
+- [x] Spec updated (`docs/especificacao.md`): one kind of record, "gasto"; RN-09 to RN-12, RN-15, RN-19, RN-20, RF-11, RF-15 and RF-18 removed (numbers are not reused); RN-13, RN-14, RN-16, RN-17, RN-22, RN-23 and the screen requirements reworded.
+- [x] Rules in `servicos/`: no IOF, no `PLANEJADA`/`REALIZADA`, no budget remaining, no cancelable rules, no reservation of a balance. `total_da_viagem` counts each balance purchase once (RN-14).
+- [x] Schema (confirmed): `Despesa` lost `situacao`, `taxa_iof`, `valor_iof`, `cancelavel`, `data_limite_cancelamento` and their constraints; `Viagem` lost `orcamento`, `aliquota_iof_credito` and `aliquota_iof_pre_pago_dinheiro`. Migrations `despesas` 0009 (data), `despesas` 0010 and `viagens` 0003. The data migration rebuilds each balance without IOF; a planned reservation on an open balance became a real use, on a closed balance it was deleted (the closing already held it).
+- [x] Screens: one "Novo gasto" entry, one list with a single total, the trip total in every trip table, the planning page with the total spent per year; the budget, IOF rates and cancelable sections are gone.
+
 ## Phase 0: Confirm (no code)
 - [x] Write the RF-xx screen requirements in docs/especificacao.md (section 7; owner to review).
 - [x] `contas` app: option A, login only; balances in `saldos`.
@@ -46,7 +53,7 @@ Rules for every phase (from AGENTS.md):
 
 ## Phase 4: Balances (`saldos`)
 - [x] Rules in `servicos/saldos.py`: average cost, purchase, use at average cost, available amount, closing category (RN-14, RN-17, RN-22). Balance payment accepted in `servicos/despesas.py`.
-- [x] Schema (confirmed): `Saldo` per trip, type and currency; `Despesa.saldo` and `movimento_saldo`; the two "Outros gastos..." categories. Accounting: the purchase or load is left out of totals, expenses paid with a balance count at the average cost, the leftover is posted at closing.
+- [x] Schema (confirmed): `Saldo` per trip, type and currency; `Despesa.saldo` and `movimento_saldo`; the two "Outros gastos..." categories. Accounting: the purchase or load is a realized cost titled "Compra de moeda estrangeira não alocada" until it is used or reserved, expenses paid with a balance count at the average cost, the leftover is posted at closing (RN-14).
 - [x] Register prepaid card and cash purchases (RF-13, RN-13): form, balances list on the trip page, IOF at the trip's rate.
 - [x] Allocate balances to planned costs or expenses (RF-14, RF-15, RN-14, RN-16, RN-17): the expense form asks whether to pay with the balance; a planned cost reserves it.
 - [x] When completing a trip, show the unallocated balances and close them into the "Outros gastos..." categories after confirmation (RF-16, RN-14); the completion screen already exists (RF-08). Everything left in a balance is closed, including amounts still reserved by planned costs.
@@ -54,7 +61,7 @@ Rules for every phase (from AGENTS.md):
 - Depends on: Phase 3.
 
 ## Phase 5: Planning and history
-- [x] Rules in `servicos/planejamento.py`: totals per year, budget remaining, deadline order and validation, trip total that leaves out the purchase or load (RN-06, RN-19, RN-20, RN-23).
+- [x] Rules in `servicos/planejamento.py`: totals per year, budget remaining, deadline order and validation, trip total that counts each purchase once, as unallocated balance or as allocated spending (RN-06, RN-14, RN-19, RN-20, RN-23).
 - [x] Planned totals per year (RN-23, RF-17): the "Planejamento" page (new app `planejamento`, no models) lists trips in planning by end-date year, with the planned total of each trip and of each year. Stand-by trips are left out.
 - [x] Budget remaining (RN-19, RF-17): budget minus planned costs only, shown on the planning page, the trip page and the trip card for trips with a budget (not completed ones); over budget is flagged.
 - [x] Cancelable expenses with a deadline (RN-20, RF-10, RF-18): `Despesa.cancelavel` and `data_limite_cancelamento` (schema confirmed, migration 0007), the checkbox and date in the expense form, and the list ordered by deadline on the planning page, with expired deadlines marked. Marking a cost as an expense clears the mark.
@@ -78,6 +85,7 @@ Rules for every phase (from AGENTS.md):
 ## Backlog (deferred, no phase yet)
 - [x] Trip list UX (done out of sequence, branch `ux-improvements`): a compact table with one row per trip (name, start, end, total; newest first; "Editar" only for trips in planning); stand-by trips moved to their own page ("Viagens em stand-by", with the type filter) and a "Custo global" (realized plus planned, purchases and loads not counted twice, RN-14) on each planning or stand-by trip. The yearly totals (RN-23) are unchanged.
 - [x] Change or delete a balance purchase or load (RN-21): from the expense list; amount, rate and date can change (type and currency cannot, and the IOF rate stays as recorded); allowed only while the balance is open and nothing was spent from it, and not below what planned costs reserve. Deleting the only purchase removes the balance.
+- [x] Unallocated balance as a realized cost (RN-14): a purchase or load is a realized cost titled "Compra de moeda estrangeira não alocada"; a use or a planned reservation takes its BRL value out of that line, so the total (realized plus planned) counts each amount once. The expense list shows the unallocated amount. Existing purchase rows were renamed by migration `0008` (data only).
 - [ ] Delete expenses and other posted data, in the screens that create them (RN-21): still open for balance uses and closings.
 
 ## Out of scope for the first version (spec section 1)

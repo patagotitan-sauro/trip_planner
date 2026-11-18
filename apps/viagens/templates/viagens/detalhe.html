@@ -12,10 +12,7 @@
     {% else %}
       Sem datas
     {% endif %}
-    {% if viagem.orcamento is not None %}| Orçamento: R$ {{ viagem.orcamento|floatformat:"2g" }}{% endif %}
   </p>
-  <p><small>IOF: cartão de crédito {{ iof_credito|floatformat:"2" }}% | cartão pré-pago e dinheiro {{ iof_pre_pago_dinheiro|floatformat:"2" }}%</small></p>
-  {% if situacao_orcamento %}<p><small>{% include "viagens/_orcamento.html" %}</small></p>{% endif %}
 </hgroup>
 
 <p>
@@ -124,11 +121,10 @@
 </section>
 
 <section>
-  <h2>Despesas</h2>
+  <h2>Gastos</h2>
   <div role="group">
-    <a href="{% url 'despesas:lista' viagem.pk %}" role="button">Ver despesas</a>
-    <a href="{% url 'despesas:criar' viagem.pk %}?situacao=planejada" role="button" class="outline">Novo custo planejado</a>
-    <a href="{% url 'despesas:criar' viagem.pk %}?situacao=realizada" role="button" class="outline">Nova despesa realizada</a>
+    <a href="{% url 'despesas:lista' viagem.pk %}" role="button">Ver gastos</a>
+    <a href="{% url 'despesas:criar' viagem.pk %}" role="button" class="outline">Novo gasto</a>
   </div>
 </section>
 {% endblock %}

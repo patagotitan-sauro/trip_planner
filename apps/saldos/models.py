@@ -20,7 +20,7 @@ class Saldo(models.Model):
     tipo = models.CharField(max_length=20, choices=TipoSaldo.choices)
     moeda = models.CharField(max_length=3, validators=[moeda_iso])
     valor_restante = models.DecimalField(max_digits=14, decimal_places=2)
-    custo_restante = models.DecimalField(max_digits=14, decimal_places=2)  # BRL, IOF included
+    custo_restante = models.DecimalField(max_digits=14, decimal_places=2)  # BRL
     encerrado = models.BooleanField(default=False)
 
     class Meta:

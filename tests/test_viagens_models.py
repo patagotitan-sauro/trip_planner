@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 
 import pytest
 from django.db import IntegrityError, transaction
@@ -28,16 +27,6 @@ def test_end_date_before_start_date_is_rejected() -> None:
             nome="Manaus",
             data_inicio=date(2027, 1, 14),
             data_fim=date(2027, 1, 4),
-        )
-
-
-@pytest.mark.django_db
-def test_budget_cannot_be_negative() -> None:
-    with pytest.raises(IntegrityError), transaction.atomic():
-        Viagem.objects.create(
-            nome="Cape Town",
-            estado=EstadoViagem.STAND_BY,
-            orcamento=Decimal("-1.00"),
         )
 
 

@@ -4,7 +4,7 @@ from django import forms
 from django.db import transaction
 
 from apps.despesas.forms import MoedaField, campo_decimal
-from apps.despesas.models import Categoria, Despesa, MovimentoSaldo, SituacaoDespesa, moeda_iso
+from apps.despesas.models import Categoria, Despesa, MovimentoSaldo, moeda_iso
 from apps.viagens.forms import CamposInvalidosMixin
 from apps.viagens.models import Viagem
 from servicos.despesas import calcular_despesa, moeda_estrangeira
@@ -85,19 +85,9 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
                 raise forms.ValidationError(
                     "Esse saldo já foi encerrado e não recebe novas compras."
                 )
-        # RN-13: the IOF is charged when the balance is bought or loaded.
-        # RN-12: an edited purchase keeps the IOF rate it was recorded with.
-        self._resultado = calcular_despesa(
-            dados["valor"],
-            dados["moeda"],
-            dados["cotacao"],
-            dados["tipo"],
-            self.viagem.aliquota_iof_credito,
-            self.viagem.aliquota_iof_pre_pago_dinheiro,
-            taxa_iof_gravada=self.compra.taxa_iof if self.compra else None,
-        )
+        self._resultado = calcular_despesa(dados["valor"], dados["moeda"], dados["cotacao"])
         if self.compra:
-            motivo = motivo_de_bloqueio(self.compra, (dados["valor"], self._resultado.total_brl))
+            motivo = motivo_de_bloqueio(self.compra)
             if motivo:
                 raise forms.ValidationError(motivo)
         return dados
@@ -112,8 +102,6 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
         compra.valor_original = self.cleaned_data["valor"]
         compra.cotacao = resultado.cotacao
         compra.valor_brl = resultado.valor_brl
-        compra.taxa_iof = resultado.taxa_iof
-        compra.valor_iof = resultado.valor_iof
         compra.save()
         refazer_saldo(compra.saldo)
         return compra.saldo
@@ -127,7 +115,7 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
             moeda=dados["moeda"],
             defaults={"valor_restante": Decimal(0), "custo_restante": Decimal(0)},
         )
-        novo = registrar_compra(saldo.estado, dados["valor"], resultado.total_brl)
+        novo = registrar_compra(saldo.estado, dados["valor"], resultado.valor_brl)
         saldo.valor_restante, saldo.custo_restante = novo.valor_restante, novo.custo_restante
         saldo.save()
 
@@ -135,16 +123,13 @@ class CompraDeSaldoForm(CamposInvalidosMixin, forms.Form):
         Despesa.objects.create(
             viagem=self.viagem,
             categoria=categoria,
-            descricao=f"Compra ou carga: {saldo}",
+            descricao="Compra de moeda estrangeira não alocada",
             data=dados["data"],
-            situacao=SituacaoDespesa.REALIZADA,
             valor_original=dados["valor"],
             moeda=dados["moeda"],
             cotacao=resultado.cotacao,
             valor_brl=resultado.valor_brl,
             forma_pagamento=dados["tipo"],
-            taxa_iof=resultado.taxa_iof,
-            valor_iof=resultado.valor_iof,
             saldo=saldo,
             movimento_saldo=MovimentoSaldo.COMPRA,
         )

@@ -8,7 +8,6 @@ from servicos.saldos import (
     categoria_de_encerramento,
     custo_do_uso,
     custo_medio,
-    disponivel,
     motivo_de_bloqueio_da_compra,
     recompor_saldo,
     registrar_compra,
@@ -44,7 +43,7 @@ def test_average_cost_uses_only_what_is_left_after_spending():
     assert estado == _estado("100", "540.00")
 
 
-def test_use_costs_average_times_amount_without_new_iof():
+def test_use_costs_average_times_amount():
     estado, custo = registrar_uso(_estado("100", "505.50"), Decimal("20"))
 
     assert custo == Decimal("101.10")
@@ -106,27 +105,16 @@ def test_average_cost_without_balance_is_refused():
         custo_medio(EstadoDoSaldo())
 
 
-def test_balance_paid_expense_has_no_new_iof_and_uses_the_average_cost():
+def test_balance_paid_expense_uses_the_average_cost():
     resultado = calcular_despesa_com_saldo(_estado("100", "505.50"), Decimal("20"))
 
     assert resultado.valor_brl == Decimal("101.10")
-    assert resultado.valor_iof == Decimal("0")
-    assert resultado.taxa_iof == Decimal("0")
     assert resultado.cotacao == Decimal("5.05500000")
-    assert resultado.total_brl == Decimal("101.10")
 
 
 def test_balance_paid_expense_above_the_balance_is_refused():
     with pytest.raises(ValueError, match="saldo"):
         calcular_despesa_com_saldo(_estado("10", "50.00"), Decimal("11"))
-
-
-def test_available_discounts_the_planned_reservations():
-    assert disponivel(_estado("100", "500.00"), Decimal("30")) == Decimal("70")
-
-
-def test_available_is_never_negative():
-    assert disponivel(_estado("100", "500.00"), Decimal("130")) == Decimal(0)
 
 
 def test_closing_category_depends_on_the_balance_type():
@@ -151,32 +139,13 @@ def test_rebuilding_a_balance_without_purchases_is_empty():
     assert recompor_saldo([]) == EstadoDoSaldo()
 
 
-def _bloqueio(**extra):
-    dados = {
-        "encerrado": False,
-        "ha_uso_realizado": False,
-        "estado_final": _estado("100", "500.00"),
-        "reservado": Decimal(0),
-    }
-    dados.update(extra)
-    return motivo_de_bloqueio_da_compra(**dados)
-
-
 def test_purchase_can_change_while_nothing_was_spent():
-    assert _bloqueio() is None
+    assert motivo_de_bloqueio_da_compra(encerrado=False, ha_uso=False) is None
 
 
 def test_closed_balance_blocks_purchase_changes():
-    assert "encerrado" in _bloqueio(encerrado=True)
+    assert "encerrado" in motivo_de_bloqueio_da_compra(encerrado=True, ha_uso=False)
 
 
-def test_realized_use_blocks_purchase_changes():
-    assert "pagas com esse saldo" in _bloqueio(ha_uso_realizado=True)
-
-
-def test_reservations_above_the_remaining_amount_block_purchase_changes():
-    assert "reservam" in _bloqueio(reservado=Decimal("100.01"))
-
-
-def test_reservations_equal_to_the_remaining_amount_do_not_block():
-    assert _bloqueio(reservado=Decimal("100")) is None
+def test_use_blocks_purchase_changes():
+    assert "pagas com esse saldo" in motivo_de_bloqueio_da_compra(encerrado=False, ha_uso=True)

@@ -20,10 +20,9 @@
     </label>
   {% endfor %}
   {% if "saldo" not in form.fields %}
-    <p><small>Para pagar com dinheiro ou cartão pré-pago, primeiro <a href="{% url 'saldos:comprar' viagem.pk %}">compre a moeda ou carregue o cartão</a>. O saldo aparece aqui como "Pagar com saldo" e pode ser usado em qualquer custo ou despesa da viagem.</small></p>
+    <p><small>Para pagar com dinheiro ou cartão pré-pago, primeiro <a href="{% url 'saldos:comprar' viagem.pk %}">compre a moeda ou carregue o cartão</a>. O saldo aparece aqui como "Pagar com saldo" e pode ser usado em qualquer gasto da viagem.</small></p>
   {% endif %}
-  <p><small>O IOF é calculado ao salvar, conforme a moeda e a forma de pagamento.</small></p>
-  <p><small>"Sugerir cotação" busca no Frankfurter a cotação do dia da despesa (ou a mais recente, sem data) e preenche o campo; você pode editá-la antes de salvar.</small></p>
+  <p><small>"Sugerir cotação" busca no Frankfurter a cotação do dia do gasto (ou a mais recente, sem data) e preenche o campo; você pode editá-la antes de salvar.</small></p>
   <div role="group">
     <button type="submit">Salvar</button>
     <button type="submit" name="sugerir_cotacao" value="1" class="secondary outline">Sugerir cotação</button>

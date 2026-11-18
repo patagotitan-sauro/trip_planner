@@ -7,13 +7,12 @@ A family web app to study possible trips and decide which one to take, manage th
 - Trips in three states: stand-by (no dates), planning and completed (grouped by year), with a national/international label and filter.
 - State changes with a confirmation page (stand-by to planning, complete, reopen); planning and stand-by trips can be deleted.
 - Destinations (country and city) and a day-by-day itinerary (by date, or by numbered day in stand-by).
-- Expenses per trip: create, edit and delete, planned and realized, by category, in any currency, optionally linked to an itinerary activity.
-- IOF and the BRL value are computed and stored when an expense is recorded; IOF rates are set per trip.
-- Expense list per trip with BRL totals, planned and realized separately.
-- Prepaid card and cash balances per trip: register a purchase or load (and change or delete it while nothing was spent from it), pay or reserve expenses with a balance (counted at the average cost), and close leftover balances when completing the trip.
-- Optional budget per trip, with the remaining value shown against the planned costs.
-- Planning page: planned totals per year and the cancelable costs by deadline.
-- History: realized total of each completed trip and of each year.
+- Expenses per trip: create, edit and delete, by category, in any currency, optionally linked to an itinerary activity. There is no planned/realized split and no IOF.
+- The BRL value is computed and stored when an expense is recorded.
+- Expense list per trip with the BRL total.
+- Prepaid card and cash balances per trip: register a purchase or load (and change or delete it while nothing was spent from it), pay expenses with a balance (counted at the average cost), and close leftover balances when completing the trip.
+- Planning page: total spent per year, for the trips in planning.
+- History: total spent in each completed trip and in each year.
 - Exchange-rate suggestion (Frankfurter) on the expense and balance purchase forms; the rate stays editable.
 - Login only; accounts are created by the admin and all members share the same data.
 - Backup and restore of the SQLite database.
@@ -39,7 +38,7 @@ Dependencies point one way: presentation, then services, then models and integra
 | Layer | Where | Responsibility |
 |---|---|---|
 | Presentation | `apps/*/views.py`, `forms.py`, `templates/` | HTTP, forms, rendering. No business rules |
-| Services | `servicos/` | Business rules in pure Python: money, conversion, IOF, balances, trip rules |
+| Services | `servicos/` | Business rules in pure Python: money, conversion, balances, trip rules |
 | Models | `apps/*/models.py` | Entities and persistence |
 | Integrations | `servicos/integracoes/` | External APIs behind an interface |
 

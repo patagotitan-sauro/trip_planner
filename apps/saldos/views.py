@@ -47,7 +47,7 @@ def comprar(request: HttpRequest, viagem_pk: int) -> HttpResponse:
 
 def editar_compra(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
     compra = _compra(viagem_pk, pk)
-    motivo = compras.motivo_de_bloqueio(compra, compras.valores_atuais(compra))
+    motivo = compras.motivo_de_bloqueio(compra)
     if motivo:
         messages.error(request, motivo)
         return redirect("despesas:lista", viagem_pk=viagem_pk)
@@ -56,7 +56,7 @@ def editar_compra(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse
 
 def excluir_compra(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
     compra = _compra(viagem_pk, pk)
-    motivo = compras.motivo_de_bloqueio(compra, None)
+    motivo = compras.motivo_de_bloqueio(compra)
     if motivo:
         messages.error(request, motivo)
         return redirect("despesas:lista", viagem_pk=viagem_pk)

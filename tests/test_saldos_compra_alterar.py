@@ -35,13 +35,12 @@ def _url(nome, compra):
     return reverse(f"saldos:{nome}", args=[compra.viagem_id, compra.pk])
 
 
-def _gastar(saldo, situacao, valor):
+def _gastar(saldo, valor):
     categoria, _ = Categoria.objects.get_or_create(nome="Passeios")
     return Despesa.objects.create(
         viagem=saldo.viagem,
         categoria=categoria,
         descricao="Museu",
-        situacao=situacao,
         valor_original=Decimal(valor),
         moeda=saldo.moeda,
         cotacao=Decimal("5.055"),
@@ -63,23 +62,10 @@ def test_editing_a_purchase_updates_it_and_rebuilds_the_balance(logado, viagem):
     compra.refresh_from_db()
     assert compra.valor_original == Decimal("200.00")
     assert compra.valor_brl == Decimal("1200.00")
-    assert compra.valor_iof == Decimal("13.20")
     assert compra.data == date(2026, 3, 12)
     saldo = Saldo.objects.get()
     assert saldo.valor_restante == Decimal("200.00")
-    assert saldo.custo_restante == Decimal("1213.20")
-
-
-def test_editing_keeps_the_iof_rate_the_purchase_was_recorded_with(logado, viagem):
-    compra = _comprar(logado, viagem)
-    viagem.aliquota_iof_pre_pago_dinheiro = Decimal("0.0500")
-    viagem.save()
-
-    logado.post(_url("editar_compra", compra), _dados(valor="200,00"))
-
-    compra.refresh_from_db()
-    assert compra.taxa_iof == Decimal("0.0110")
-    assert compra.valor_iof == Decimal("11.00")
+    assert saldo.custo_restante == Decimal("1200.00")
 
 
 def test_editing_one_of_two_purchases_recalculates_the_average_cost(logado, viagem):
@@ -90,7 +76,7 @@ def test_editing_one_of_two_purchases_recalculates_the_average_cost(logado, viag
 
     saldo = Saldo.objects.get()
     assert saldo.valor_restante == Decimal("200.00")
-    assert saldo.custo_restante == Decimal("1011.00")
+    assert saldo.custo_restante == Decimal("1000.00")
 
 
 def test_type_and_currency_cannot_be_changed_by_editing(logado, viagem):
@@ -141,25 +127,13 @@ def test_suggest_button_fills_the_rate_without_changing_the_purchase(
     assert compra.cotacao == Decimal("5.00000000")
 
 
-def test_a_purchase_with_realized_spending_cannot_be_edited(logado, viagem):
+def test_a_purchase_with_spending_cannot_be_edited(logado, viagem):
     compra = _comprar(logado, viagem)
-    _gastar(Saldo.objects.get(), "realizada", "10")
+    _gastar(Saldo.objects.get(), "10")
 
     resposta = logado.post(_url("editar_compra", compra), _dados(valor="200,00"))
 
     assert resposta.status_code == 302
-    compra.refresh_from_db()
-    assert compra.valor_original == Decimal("100.00")
-
-
-def test_an_edit_that_leaves_less_than_the_reserved_amount_is_refused(logado, viagem):
-    compra = _comprar(logado, viagem)
-    _gastar(Saldo.objects.get(), "planejada", "60")
-
-    resposta = logado.post(_url("editar_compra", compra), _dados(valor="50,00"))
-
-    assert resposta.status_code == 200
-    assert "reservam" in resposta.content.decode()
     compra.refresh_from_db()
     assert compra.valor_original == Decimal("100.00")
 
@@ -200,34 +174,23 @@ def test_deleting_one_of_two_purchases_rebuilds_the_balance(logado, viagem):
 
     saldo = Saldo.objects.get()
     assert saldo.valor_restante == Decimal("100.00")
-    assert saldo.custo_restante == Decimal("505.50")
+    assert saldo.custo_restante == Decimal("500.00")
     assert Despesa.objects.count() == 1
 
 
-def test_a_purchase_with_realized_spending_cannot_be_deleted(logado, viagem):
+def test_a_purchase_with_spending_cannot_be_deleted(logado, viagem):
     compra = _comprar(logado, viagem)
-    _gastar(Saldo.objects.get(), "realizada", "10")
+    _gastar(Saldo.objects.get(), "10")
 
     resposta = logado.post(_url("excluir_compra", compra))
 
     assert resposta.status_code == 302
     assert Despesa.objects.filter(pk=compra.pk).exists()
-
-
-def test_deleting_a_purchase_that_a_reservation_depends_on_is_refused(logado, viagem):
-    compra = _comprar(logado, viagem)
-    _gastar(Saldo.objects.get(), "planejada", "30")
-
-    resposta = logado.post(_url("excluir_compra", compra))
-
-    assert resposta.status_code == 302
-    assert Despesa.objects.filter(pk=compra.pk).exists()
-    assert Saldo.objects.get().valor_restante == Decimal("100.00")
 
 
 def test_only_purchases_use_these_screens(logado, viagem):
     _comprar(logado, viagem)
-    uso = _gastar(Saldo.objects.get(), "planejada", "10")
+    uso = _gastar(Saldo.objects.get(), "10")
 
     assert logado.get(_url("editar_compra", uso)).status_code == 404
     assert logado.post(_url("excluir_compra", uso)).status_code == 404

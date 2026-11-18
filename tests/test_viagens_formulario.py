@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 
 from django.urls import reverse
 
@@ -12,7 +11,6 @@ DADOS = {
     "cidade": "Buenos Aires",
     "data_inicio": "2027-02-01",
     "data_fim": "2027-02-10",
-    "orcamento": "",
 }
 
 
@@ -53,12 +51,12 @@ def test_create_trip_without_country_is_rejected_and_saves_nothing(logado):
     assert not Viagem.objects.exists()
 
 
-def test_create_planning_trip_with_dates_and_no_budget(logado):
+def test_create_planning_trip_with_dates(logado):
     response = logado.post(reverse("viagens:criar"), DADOS)
 
     assert response.status_code == 302
     viagem = Viagem.objects.get()
-    assert (viagem.nome, viagem.estado, viagem.orcamento) == ("Argentina", "planejamento", None)
+    assert (viagem.nome, viagem.estado) == ("Argentina", "planejamento")
     assert viagem.data_fim == date(2027, 2, 10)
 
 
@@ -92,19 +90,6 @@ def test_end_date_before_start_date_is_rejected(logado):
     assert not Viagem.objects.exists()
 
 
-def test_budget_accepts_brazilian_decimal_comma(logado):
-    logado.post(reverse("viagens:criar"), {**DADOS, "orcamento": "12500,50"})
-
-    assert Viagem.objects.get().orcamento == Decimal("12500.50")
-
-
-def test_negative_budget_is_rejected(logado):
-    response = logado.post(reverse("viagens:criar"), {**DADOS, "orcamento": "-1"})
-
-    assert "O orçamento não pode ser negativo." in response.content.decode()
-    assert not Viagem.objects.exists()
-
-
 def test_blank_name_is_rejected(logado):
     response = logado.post(reverse("viagens:criar"), {**DADOS, "nome": ""})
 
@@ -119,7 +104,7 @@ def test_edit_changes_the_trip_and_keeps_its_state(logado):
         data_inicio=date(2024, 1, 1),
         data_fim=date(2024, 1, 5),
     )
-    dados = {"nome": "Novo", "data_inicio": "2024-01-01", "data_fim": "2024-01-06", "orcamento": ""}
+    dados = {"nome": "Novo", "data_inicio": "2024-01-01", "data_fim": "2024-01-06"}
 
     response = logado.post(reverse("viagens:editar", args=[viagem.pk]), dados)
 
@@ -171,90 +156,12 @@ def test_list_links_to_create_and_edit(logado):
     assert reverse("viagens:editar", args=[viagem.pk]) in html
 
 
-def test_create_form_shows_the_default_iof_rates_as_percentages(logado):
-    html = logado.get(reverse("viagens:criar")).content.decode()
+def test_trip_form_and_page_have_no_budget_or_iof(logado):
+    viagem = Viagem.objects.create(nome="Sul", estado=EstadoViagem.STAND_BY)
 
-    assert 'name="aliquota_iof_credito"' in html
-    assert 'value="3,50"' in html
-    assert 'value="1,10"' in html
+    formulario = logado.get(reverse("viagens:criar")).content.decode()
+    pagina = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
 
-
-def test_create_trip_without_rates_uses_the_defaults(logado):
-    logado.post(reverse("viagens:criar"), DADOS)
-
-    viagem = Viagem.objects.get()
-    assert viagem.aliquota_iof_credito == Decimal("0.0350")
-    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0.0110")
-
-
-def test_create_trip_with_custom_iof_rates_stores_fractions(logado):
-    dados = {**DADOS, "aliquota_iof_credito": "4,5", "aliquota_iof_pre_pago_dinheiro": "0"}
-
-    logado.post(reverse("viagens:criar"), dados)
-
-    viagem = Viagem.objects.get()
-    assert viagem.aliquota_iof_credito == Decimal("0.0450")
-    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0")
-
-
-def test_iof_rate_accepts_two_decimal_places_and_one_hundred_percent(logado):
-    dados = {**DADOS, "aliquota_iof_credito": "3,55", "aliquota_iof_pre_pago_dinheiro": "100"}
-
-    logado.post(reverse("viagens:criar"), dados)
-
-    viagem = Viagem.objects.get()
-    assert viagem.aliquota_iof_credito == Decimal("0.0355")
-    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("1")
-
-
-def test_invalid_iof_rates_are_rejected_with_a_clear_message(logado):
-    for invalido in ("101", "-1", "3,555", "abc"):
-        response = logado.post(
-            reverse("viagens:criar"), {**DADOS, "aliquota_iof_credito": invalido}
-        )
-
-        assert "percentual entre 0 e 100" in response.content.decode(), invalido
-    assert not Viagem.objects.exists()
-
-
-def test_edit_shows_and_changes_the_trip_iof_rates(logado):
-    viagem = Viagem.objects.create(
-        nome="Sul",
-        estado=EstadoViagem.STAND_BY,
-        aliquota_iof_credito=Decimal("0.0400"),
-    )
-    url = reverse("viagens:editar", args=[viagem.pk])
-
-    assert 'value="4,00"' in logado.get(url).content.decode()
-
-    logado.post(
-        url, {"nome": "Sul", "aliquota_iof_credito": "5", "aliquota_iof_pre_pago_dinheiro": ""}
-    )
-
-    viagem.refresh_from_db()
-    assert viagem.aliquota_iof_credito == Decimal("0.0500")
-    assert viagem.aliquota_iof_pre_pago_dinheiro == Decimal("0.0110")
-
-
-def test_editing_without_the_rate_fields_keeps_the_current_rates(logado):
-    viagem = Viagem.objects.create(
-        nome="Sul",
-        estado=EstadoViagem.STAND_BY,
-        aliquota_iof_credito=Decimal("0.0400"),
-    )
-
-    logado.post(reverse("viagens:editar", args=[viagem.pk]), {"nome": "Sul 2"})
-
-    viagem.refresh_from_db()
-    assert viagem.aliquota_iof_credito == Decimal("0.0400")
-
-
-def test_detail_shows_the_iof_rates_in_percent(logado):
-    viagem = Viagem.objects.create(
-        nome="Sul", estado=EstadoViagem.STAND_BY, aliquota_iof_credito=Decimal("0.0400")
-    )
-
-    html = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
-
-    assert "cartão de crédito 4,00%" in html
-    assert "cartão pré-pago e dinheiro 1,10%" in html
+    for html in (formulario, pagina):
+        assert "rçamento" not in html
+        assert "IOF" not in html

@@ -17,7 +17,7 @@ class EstadoDoSaldo:
     """What is left of one balance (same trip, type and currency), RN-17."""
 
     valor_restante: Decimal = Decimal(0)
-    custo_restante: Decimal = Decimal(0)  # BRL, with the IOF already paid
+    custo_restante: Decimal = Decimal(0)  # BRL paid for what is left
 
 
 def custo_medio(estado: EstadoDoSaldo) -> Decimal:
@@ -39,7 +39,7 @@ def registrar_compra(estado: EstadoDoSaldo, valor: Decimal, custo_brl: Decimal) 
 
 
 def custo_do_uso(estado: EstadoDoSaldo, valor: Decimal) -> Decimal:
-    """RN-22: average cost times the amount spent, rounded once; no new IOF (RN-14)."""
+    """RN-22: average cost times the amount spent, rounded once."""
     _validar_uso(estado, valor)
     if valor == estado.valor_restante:
         # Spending everything takes the exact remaining cost, so no cents are left behind.
@@ -56,22 +56,12 @@ def registrar_uso(estado: EstadoDoSaldo, valor: Decimal) -> tuple[EstadoDoSaldo,
 
 
 def calcular_despesa_com_saldo(estado: EstadoDoSaldo, valor: Decimal) -> ResultadoDaDespesa:
-    """RN-14, RN-22: no new IOF. The stored rate is the average cost, for display only."""
-    return ResultadoDaDespesa(
-        cotacao=custo_medio(estado),
-        valor_brl=custo_do_uso(estado, valor),
-        taxa_iof=Decimal(0),
-        valor_iof=Decimal(0),
-    )
-
-
-def disponivel(estado: EstadoDoSaldo, reservado: Decimal) -> Decimal:
-    """RN-14: what can still be allocated after the planned costs already linked to the balance."""
-    return max(estado.valor_restante - reservado, Decimal(0))
+    """RN-14, RN-22: the stored rate is the average cost, for display only."""
+    return ResultadoDaDespesa(cotacao=custo_medio(estado), valor_brl=custo_do_uso(estado, valor))
 
 
 def recompor_saldo(compras: Iterable[tuple[Decimal, Decimal]]) -> EstadoDoSaldo:
-    """RN-21: the balance rebuilt from (amount, BRL cost with IOF) of its purchases alone."""
+    """RN-21: the balance rebuilt from (amount, BRL cost) of its purchases alone."""
     estado = EstadoDoSaldo()
     for valor, custo_brl in compras:
         estado = registrar_compra(estado, valor, custo_brl)
@@ -81,20 +71,16 @@ def recompor_saldo(compras: Iterable[tuple[Decimal, Decimal]]) -> EstadoDoSaldo:
 def motivo_de_bloqueio_da_compra(
     *,
     encerrado: bool,
-    ha_uso_realizado: bool,
-    estado_final: EstadoDoSaldo,
-    reservado: Decimal,
+    ha_uso: bool,
 ) -> str | None:
     """RN-21: a purchase can change only while nothing was booked at the balance's average cost."""
     if encerrado:
         return "Esse saldo já foi encerrado; a compra não pode mais ser alterada."
-    if ha_uso_realizado:
+    if ha_uso:
         return (
             "Há despesas pagas com esse saldo, cujo custo médio já foi lançado; "
             "a compra não pode ser alterada."
         )
-    if estado_final.valor_restante < reservado:
-        return "Custos planejados reservam mais do que sobraria no saldo depois dessa mudança."
     return None
 
 

@@ -30,7 +30,6 @@ def _gastar(client, viagem, saldo, valor):
     return client.post(
         reverse("despesas:criar", args=[viagem.pk]),
         {
-            "situacao": "realizada",
             "descricao": "Museu",
             "categoria": categoria.pk,
             "moeda": saldo.moeda,
@@ -51,7 +50,7 @@ def test_confirmation_page_lists_the_balances_and_changes_nothing(logado, viagem
 
     html = resposta.content.decode()
     assert "Dinheiro em USD" in html
-    assert "505,50" in html
+    assert "500,00" in html
     assert Saldo.objects.get().encerrado is False
     assert Despesa.objects.count() == 1
 
@@ -76,23 +75,19 @@ def test_completing_the_trip_posts_the_leftover_and_closes_the_balance(logado, v
     assert (saldo.valor_restante, saldo.custo_restante) == (Decimal("0"), Decimal("0"))
     sobra = Despesa.objects.get(movimento_saldo=MovimentoSaldo.ENCERRAMENTO)
     assert sobra.valor_original == Decimal("80.00")
-    assert sobra.valor_brl == Decimal("404.40")
-    assert sobra.valor_iof == Decimal("0")
-    assert sobra.situacao == "realizada"
+    assert sobra.valor_brl == Decimal("400.00")
     assert sobra.data == date(2027, 3, 20)
     assert sobra.categoria.nome == "Outros gastos com dinheiro"
 
 
-def test_realized_total_equals_the_cost_of_the_purchase(logado, viagem):
+def test_total_equals_the_cost_of_the_purchase(logado, viagem):
     _comprar(logado, viagem)
     _gastar(logado, viagem, Saldo.objects.get(), "20,00")
     _concluir(logado, viagem)
 
     resposta = logado.get(reverse("despesas:lista", args=[viagem.pk]))
 
-    realizadas = resposta.context["grupos"][1]
-    assert realizadas["total"] == Decimal("505.50")
-    assert realizadas["iof"] == Decimal("0")
+    assert resposta.context["total"] == Decimal("500.00")
 
 
 def test_each_balance_type_goes_to_its_own_category(logado, viagem):

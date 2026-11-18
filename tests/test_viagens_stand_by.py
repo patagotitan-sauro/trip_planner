@@ -25,17 +25,15 @@ def _viagem(nome, estado=EstadoViagem.PLANEJAMENTO, pais="BR"):
     return viagem
 
 
-def _despesa(viagem, categoria, valor, situacao="realizada", **extra):
+def _despesa(viagem, categoria, valor, **extra):
     dados = {
         "viagem": viagem,
         "categoria": categoria,
         "descricao": "Item",
-        "situacao": situacao,
         "valor_original": Decimal(valor),
         "moeda": "BRL",
         "cotacao": Decimal(1),
         "valor_brl": Decimal(valor),
-        "valor_iof": Decimal("0.00"),
     }
     dados.update(extra)
     return Despesa.objects.create(**dados)
@@ -88,16 +86,15 @@ def test_first_page_links_to_stand_by_trips_and_keeps_the_filter(logado):
     assert f'href="{URL_STAND_BY}?tipo=nacional"' in html
 
 
-def test_global_cost_is_realized_plus_planned(logado, categoria):
+def test_trip_total_sums_its_expenses(logado, categoria):
     viagem = _viagem("Sul")
     _despesa(viagem, categoria, "100.00")
-    _despesa(viagem, categoria, "50.50", situacao="planejada")
-    _despesa(viagem, categoria, "10.00", valor_iof=Decimal("0.25"))
+    _despesa(viagem, categoria, "50.50")
 
-    assert "<td>R$ 160,75</td>" in _html(logado, reverse("viagens:inicio"))
+    assert "<td>R$ 150,50</td>" in _html(logado, reverse("viagens:inicio"))
 
 
-def test_global_cost_does_not_count_the_balance_purchase_twice(logado, categoria):
+def test_trip_total_counts_the_balance_purchase_once(logado, categoria):
     viagem = _viagem("Buenos Aires", pais="AR")
     saldo = Saldo.objects.create(
         viagem=viagem,
@@ -108,29 +105,13 @@ def test_global_cost_does_not_count_the_balance_purchase_twice(logado, categoria
     )
     _despesa(viagem, categoria, "500.00", movimento_saldo="compra", saldo=saldo)
     _despesa(viagem, categoria, "80.00", movimento_saldo="uso", saldo=saldo)
-    _despesa(viagem, categoria, "40.00", situacao="planejada")
+    _despesa(viagem, categoria, "40.00")
 
-    assert "<td>R$ 120,00</td>" in _html(logado, reverse("viagens:inicio"))
+    assert "<td>R$ 540,00</td>" in _html(logado, reverse("viagens:inicio"))
 
 
-def test_stand_by_trip_shows_its_global_cost(logado, categoria):
+def test_stand_by_trip_shows_its_total(logado, categoria):
     viagem = _viagem("Japão", EstadoViagem.STAND_BY, pais="JP")
-    _despesa(viagem, categoria, "900.00", situacao="planejada")
+    _despesa(viagem, categoria, "900.00")
 
     assert "<td>R$ 900,00</td>" in _html(logado, URL_STAND_BY)
-
-
-def test_year_heading_keeps_the_realized_total_only(logado, categoria):
-    viagem = Viagem.objects.create(
-        nome="Floripa",
-        estado=EstadoViagem.CONCLUIDA,
-        data_inicio=date(2025, 1, 1),
-        data_fim=date(2025, 1, 10),
-    )
-    _despesa(viagem, categoria, "100.00")
-    _despesa(viagem, categoria, "900.00", situacao="planejada")
-
-    html = _html(logado, reverse("viagens:inicio"))
-
-    assert "2025: R$ 100,00" in html
-    assert "Custo global" not in html

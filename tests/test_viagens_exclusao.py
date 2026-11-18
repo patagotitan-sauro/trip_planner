@@ -49,7 +49,7 @@ def test_confirmation_page_counts_what_will_be_deleted(logado):
 
     html = logado.get(reverse("viagens:excluir", args=[viagem.pk])).content.decode()
 
-    assert "1 destino(s), 1 atividade(s) do roteiro e 1 despesa(s)" in html
+    assert "1 destino(s), 1 atividade(s) do roteiro e 1 gasto(s)" in html
     assert Viagem.objects.filter(pk=viagem.pk).exists()
 
 

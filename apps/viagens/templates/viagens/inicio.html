@@ -29,7 +29,7 @@
     <h2>Concluídas</h2>
     {% for grupo in concluidas %}
       <h3>{{ grupo.ano }}: R$ {{ grupo.total|floatformat:"2g" }}</h3>
-      {% include "viagens/_tabela.html" with viagens=grupo.viagens realizado=True %}
+      {% include "viagens/_tabela.html" with viagens=grupo.viagens %}
     {% endfor %}
   </section>
 {% endif %}

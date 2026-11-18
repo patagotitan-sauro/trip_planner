@@ -47,24 +47,24 @@ Short and basic. Grouped by purpose. Keep it updated when a file is added or rem
 | `config/asgi.py` | Entry point for async servers. Not used yet. |
 | `apps/` | The Django apps (models, views, forms, templates). Thin, no business rules. |
 | `apps/contas/` | Login and logout with Django auth (no models). Accounts are created by the admin. |
-| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations), the trip list (one table row per trip with start, end and total, newest first; planning and completed; planning and stand-by trips show their "Custo global"), the separate stand-by list and the confirmation screens for state changes and deletion. |
+| `apps/viagens/` | Trips, destinations and itinerary activities (models and migrations), the trip list (one table row per trip with start, end and total spent, newest first; planning and completed), the separate stand-by list and the confirmation screens for state changes and deletion. |
 | `templates/base.html` | Base page in pt-BR (top bar with user and logout) that every page extends. |
 | `static/css/pico.min.css` | Pico CSS 2.1.1 (MIT, license beside it), vendored so the UI works offline. Replace the file to upgrade. |
 | `static/css/app.css` | Small project styles on top of Pico (for example the red `perigo` button for destructive actions). |
-| `apps/despesas/` | Expense categories and expenses: models and migrations, plus the screens to list, create, edit and delete the expenses of a trip (the IOF and BRL value are computed on save by `servicos/despesas.py`). |
-| `apps/saldos/` | Prepaid card and cash balances of a trip (`Saldo`: type, currency, remaining amount and BRL cost). Models and migrations, plus the form to buy currency or load a prepaid card (it creates the `Saldo` and the realized expense with IOF) and the screens to change or delete a purchase while nothing was spent from the balance (`compras.py` holds the checks and rebuilds the balance from its purchases); `encerramento.py` closes the leftover balances when the trip is completed; expenses link to a balance through `Despesa.saldo` and `movimento_saldo`. |
-| `apps/planejamento/` | The "Planejamento" page: planned totals per year with the budget remaining of each trip, and the cancelable costs ordered by deadline (no models). `totais.py` computes the planned, realized and global (planned plus realized) total and the budget of a trip for the other screens. |
+| `apps/despesas/` | Expense categories and expenses: models and migrations, plus the screens to list, create, edit and delete the expenses of a trip (the BRL value is computed on save by `servicos/despesas.py`; there is no planned/realized split and no IOF). |
+| `apps/saldos/` | Prepaid card and cash balances of a trip (`Saldo`: type, currency, remaining amount and BRL cost). Models and migrations, plus the form to buy currency or load a prepaid card (it creates the `Saldo` and the "não alocada" expense) and the screens to change or delete a purchase while nothing was spent from the balance (`compras.py` holds the checks and rebuilds the balance from its purchases); `encerramento.py` closes the leftover balances when the trip is completed; expenses link to a balance through `Despesa.saldo` and `movimento_saldo`. |
+| `apps/planejamento/` | The "Planejamento" page: total spent per year and per trip, for the trips in planning (no models). `totais.py` computes the total of a trip for the other screens. |
 | `servicos/` | Business rules in pure Python (money, conversion, splitting, balance allocation, trip comparison, history totals). No HTTP. |
 | `servicos/integracoes/` | External APIs behind an interface. `cotacao.py` defines the exchange-rate interface (`ProvedorDeCotacao`) and its result and error; `frankfurter.py` is the client for `api.frankfurter.dev` (standard library, https only, no key). |
 | `servicos/cotacao.py` | Rate suggestion rule: validates the currency, picks the expense date's rate or the latest one, and asks the provider (RN-08). |
 | `apps/viagens/cotacao.py` | Shared by the expense and balance purchase forms: the "Sugerir cotação" button fills the rate and shows the result; `provedor_de_cotacao()` is what tests replace. |
-| `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, IOF by payment method (RN-09 to RN-11), allowed payment methods by currency, including payment with a balance (RN-10, RN-14), and totals. |
-| `servicos/saldos.py` | Balance rules: average cost, purchase, use at average cost, available amount, closing category and when a purchase can change (RN-14, RN-17, RN-21, RN-22). |
-| `servicos/planejamento.py` | Planning and history rules: trip total without the purchase or load row, totals per end-date year, budget remaining, cancelable deadline validation and order (RN-06, RN-19, RN-20, RN-23). |
+| `servicos/despesas.py` | Expense rules: BRL conversion with the stored rate, allowed payment methods by currency, including payment with a balance (RN-13, RN-14), and totals. |
+| `servicos/saldos.py` | Balance rules: average cost, purchase, use at average cost, closing category and when a purchase can change (RN-14, RN-17, RN-21, RN-22). |
+| `servicos/planejamento.py` | Planning and history rules: trip total with the unallocated balance, unallocated amount per balance and totals per end-date year (RN-06, RN-14, RN-23). |
 | `servicos/moeda.py` | Converts amounts to BRL and rounds money in one place. |
 | `servicos/classificacao.py` | Classifies a trip as national or international from its destinations (RN-02). |
 | `servicos/viagens.py` | Trip rules: grouping by state and year, date validation, who can be deleted, itinerary grouping and position (RN-03, RN-06, RN-18, RN-23). |
-| `servicos/importacao_antiga.py` | Mapping rules (trip status, destinations, expense situation) for the old database import. |
+| `servicos/importacao_antiga.py` | Mapping rules (trip status, destinations, exchange rate) for the old database import. |
 | `apps/viagens/management/commands/importar_banco_antigo.py` | One-time import: reads an old `db.sqlite3` read-only and writes the new models in one transaction. |
 | `tests/` | Automated tests. |
 

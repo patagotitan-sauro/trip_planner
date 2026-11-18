@@ -76,23 +76,21 @@ def test_trips_get_status_and_destination_from_old_data(banco_antigo: Path) -> N
 
 
 @pytest.mark.django_db
-def test_actual_expense_converts_with_its_own_rate(banco_antigo: Path) -> None:
+def test_expense_with_its_own_rate_converts_with_it(banco_antigo: Path) -> None:
     importar(banco_antigo)
 
     despesa = Despesa.objects.get(descricao="Airbnb")
     assert despesa.valor_brl == Decimal("100.00")
     assert despesa.cotacao == Decimal("0.29411765")
-    assert despesa.situacao == "realizada"
 
 
 @pytest.mark.django_db
-def test_planned_expense_uses_shared_rate_of_its_trip(banco_antigo: Path) -> None:
+def test_expense_without_its_own_rate_uses_the_shared_rate_of_its_trip(banco_antigo: Path) -> None:
     importar(banco_antigo)
 
     despesa = Despesa.objects.get(descricao="Museu")
     assert despesa.cotacao == Decimal("0.34482759")
     assert despesa.valor_brl == Decimal("1000.00")
-    assert despesa.situacao == "planejada"
 
 
 @pytest.mark.django_db

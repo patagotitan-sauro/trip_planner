@@ -12,8 +12,6 @@ DESTINOS: dict[str, tuple[str, str]] = {
     "Floripa - Natal": ("BR", "Florianópolis"),
 }
 
-SITUACOES_DESPESA = {"actual": "realizada", "planned": "planejada"}
-
 
 def estado_da_viagem(congelada: bool, data_fim: date, hoje: date) -> str:
     if congelada:
@@ -27,12 +25,6 @@ def destino_da_viagem(texto: str) -> tuple[str, str]:
     if texto not in DESTINOS:
         raise ValueError(f"Destino sem mapeamento de país e cidade: {texto}")
     return DESTINOS[texto]
-
-
-def situacao_da_despesa(status_antigo: str) -> str:
-    if status_antigo not in SITUACOES_DESPESA:
-        raise ValueError(f"Status de despesa desconhecido: {status_antigo}")
-    return SITUACOES_DESPESA[status_antigo]
 
 
 def taxa_da_despesa(

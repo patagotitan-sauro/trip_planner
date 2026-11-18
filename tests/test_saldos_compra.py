@@ -31,20 +31,18 @@ def _comprar(client, viagem, dados):
     return client.post(reverse("saldos:comprar", args=[viagem.pk]), dados)
 
 
-def test_purchase_creates_the_balance_and_a_realized_expense_with_iof(logado, viagem):
+def test_purchase_creates_the_balance_and_an_expense(logado, viagem):
     resposta = _comprar(logado, viagem, _dados())
 
     assert resposta.status_code == 302
     saldo = Saldo.objects.get()
     assert (saldo.tipo, saldo.moeda) == (TipoSaldo.DINHEIRO, "USD")
     assert saldo.valor_restante == Decimal("100.00")
-    assert saldo.custo_restante == Decimal("505.50")
+    assert saldo.custo_restante == Decimal("500.00")
     compra = Despesa.objects.get()
     assert compra.saldo == saldo
     assert compra.movimento_saldo == MovimentoSaldo.COMPRA
-    assert compra.situacao == "realizada"
     assert compra.valor_brl == Decimal("500.00")
-    assert compra.valor_iof == Decimal("5.50")
     assert compra.categoria.nome == "Outros gastos com dinheiro"
 
 
@@ -60,18 +58,9 @@ def test_second_purchase_updates_the_average_cost(logado, viagem):
 
     saldo = Saldo.objects.get()
     assert saldo.valor_restante == Decimal("200.00")
-    assert saldo.custo_restante == Decimal("1112.10")
-    assert saldo.custo_medio == Decimal("5.56050000")
+    assert saldo.custo_restante == Decimal("1100.00")
+    assert saldo.custo_medio == Decimal("5.50000000")
     assert Despesa.objects.count() == 2
-
-
-def test_iof_uses_the_trip_rate(logado, viagem):
-    viagem.aliquota_iof_pre_pago_dinheiro = Decimal("0.0200")
-    viagem.save()
-
-    _comprar(logado, viagem, _dados())
-
-    assert Despesa.objects.get().valor_iof == Decimal("10.00")
 
 
 def test_different_currencies_are_separate_balances(logado, viagem):
@@ -125,18 +114,17 @@ def test_trip_page_lists_the_balances(logado, viagem):
     html = logado.get(reverse("viagens:detalhe", args=[viagem.pk])).content.decode()
 
     assert "Dinheiro em USD" in html
-    assert "505,50" in html
+    assert "500,00" in html
 
 
-def test_expense_list_leaves_purchases_out_of_the_totals(logado, viagem):
+def test_expense_list_counts_the_unallocated_purchase_once(logado, viagem):
     _comprar(logado, viagem, _dados())
 
     resposta = logado.get(reverse("despesas:lista", args=[viagem.pk]))
 
-    realizadas = resposta.context["grupos"][1]
-    assert len(realizadas["despesas"]) == 1
-    assert realizadas["total"] == Decimal("0")
-    assert realizadas["fora_do_total"] == 1
+    assert len(resposta.context["despesas"]) == 1
+    assert resposta.context["total"] == Decimal("500.00")
+    assert resposta.context["nao_alocado"] == Decimal("500.00")
 
 
 def test_purchase_rows_cannot_be_edited_or_deleted(logado, viagem):

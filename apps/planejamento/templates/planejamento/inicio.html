@@ -6,7 +6,7 @@
 <h1>Planejamento</h1>
 
 <section>
-  <h2>Total planejado por ano</h2>
+  <h2>Total gasto por ano</h2>
   {% for grupo in anos %}
     <h3>{{ grupo.ano }}: R$ {{ grupo.total|floatformat:"2g" }}</h3>
     <div class="overflow-auto">
@@ -14,22 +14,14 @@
         <thead>
           <tr>
             <th>Viagem</th>
-            <th>Planejado</th>
-            <th>Orçamento</th>
-            <th>Restante</th>
+            <th>Total gasto</th>
           </tr>
         </thead>
         <tbody>
           {% for linha in grupo.linhas %}
           <tr>
             <td><a href="{% url 'viagens:detalhe' linha.viagem.pk %}">{{ linha.viagem.nome }}</a></td>
-            <td>R$ {{ linha.orcamento.planejado|floatformat:"2g" }}</td>
-            <td>{% if linha.viagem.orcamento is not None %}R$ {{ linha.viagem.orcamento|floatformat:"2g" }}{% else %}-{% endif %}</td>
-            <td>
-              {% if linha.orcamento.restante is None %}-
-              {% elif linha.orcamento.excesso %}<mark>Estourado em R$ {{ linha.orcamento.excesso|floatformat:"2g" }}</mark>
-              {% else %}R$ {{ linha.orcamento.restante|floatformat:"2g" }}{% endif %}
-            </td>
+            <td>R$ {{ linha.total|floatformat:"2g" }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -39,38 +31,5 @@
     <p>Nenhuma viagem em planejamento.</p>
   {% endfor %}
   <p><small>Viagens em stand-by ficam fora dos totais. O ano é o da data de fim da viagem.</small></p>
-</section>
-
-<section>
-  <h2>Custos canceláveis</h2>
-  {% if cancelaveis %}
-    <div class="overflow-auto">
-      <table>
-        <thead>
-          <tr>
-            <th>Cancelar até</th>
-            <th>Custo</th>
-            <th>Viagem</th>
-            <th>Valor original</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for despesa in cancelaveis %}
-          <tr>
-            <td>
-              {{ despesa.data_limite_cancelamento|date:"d/m/Y" }}
-              {% if despesa.vencido %}<mark>Vencido</mark>{% endif %}
-            </td>
-            <td>{{ despesa.descricao }}</td>
-            <td><a href="{% url 'despesas:lista' despesa.viagem.pk %}">{{ despesa.viagem.nome }}</a></td>
-            <td>{{ despesa.valor_original|floatformat:"2g" }} {{ despesa.moeda }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <p>Nenhum custo cancelável nas viagens em planejamento.</p>
-  {% endif %}
 </section>
 {% endblock %}

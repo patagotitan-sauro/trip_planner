@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
-from apps.despesas.models import Categoria, Despesa, MovimentoSaldo, SituacaoDespesa
+from apps.despesas.models import Categoria, Despesa, MovimentoSaldo
 from apps.viagens.models import Viagem
 from servicos.saldos import categoria_de_encerramento
 
@@ -20,7 +20,7 @@ def saldos_a_encerrar(viagem: Viagem) -> list[Saldo]:
 def encerrar_saldos(viagem: Viagem) -> list[Despesa]:
     """RN-14: posts what is left of each balance as an "Outros gastos" expense and closes it.
 
-    The leftover keeps its BRL cost already paid, so it adds no new IOF.
+    The leftover keeps the BRL cost already paid, so the cost is not counted again.
     """
     lancamentos = []
     for saldo in saldos_a_encerrar(viagem):
@@ -31,14 +31,11 @@ def encerrar_saldos(viagem: Viagem) -> list[Despesa]:
                 categoria=categoria,
                 descricao=f"Saldo não usado: {saldo}",
                 data=viagem.data_fim,
-                situacao=SituacaoDespesa.REALIZADA,
                 valor_original=saldo.valor_restante,
                 moeda=saldo.moeda,
                 cotacao=saldo.custo_medio,
                 valor_brl=saldo.custo_restante,
                 forma_pagamento=saldo.tipo,
-                taxa_iof=Decimal(0),
-                valor_iof=Decimal(0),
                 saldo=saldo,
                 movimento_saldo=MovimentoSaldo.ENCERRAMENTO,
             )

@@ -1,4 +1,3 @@
-from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -30,12 +29,10 @@ def _despesa(viagem, categoria, valor="100.00", **extra):
         "viagem": viagem,
         "categoria": categoria,
         "descricao": "Item",
-        "situacao": "planejada",
         "valor_original": Decimal(valor),
         "moeda": "BRL",
         "cotacao": Decimal(1),
         "valor_brl": Decimal(valor),
-        "valor_iof": Decimal("0.00"),
     }
     dados.update(extra)
     return Despesa.objects.create(**dados)
@@ -53,13 +50,10 @@ def test_page_requires_login(client, db):
 
 
 def test_page_says_there_are_no_trips_in_planning(logado):
-    html = _html(logado)
-
-    assert "Nenhuma viagem em planejamento." in html
-    assert "Nenhum custo cancelável" in html
+    assert "Nenhuma viagem em planejamento." in _html(logado)
 
 
-def test_planned_total_is_summed_per_year_of_the_end_date(logado, categoria):
+def test_total_is_summed_per_year_of_the_end_date(logado, categoria):
     hoje = timezone.localdate()
     proximo_ano = hoje.replace(year=hoje.year + 1)
     a = _viagem("Argentina", fim=hoje)
@@ -76,13 +70,15 @@ def test_planned_total_is_summed_per_year_of_the_end_date(logado, categoria):
     assert html.index(str(proximo_ano.year)) < html.index(f"{hoje.year}:")
 
 
-def test_realized_expenses_do_not_count_as_planned(logado, categoria):
-    viagem = _viagem()
-    _despesa(viagem, categoria, "100.00")
-    _despesa(viagem, categoria, "999.00", situacao="realizada")
+def test_each_trip_shows_its_own_total(logado, categoria):
+    _despesa(_viagem("Argentina"), categoria, "100.00")
+    _despesa(_viagem("Chile"), categoria, "50.50")
 
-    assert "R$ 100,00" in _html(logado)
-    assert "999" not in _html(logado)
+    html = _html(logado)
+
+    assert "Argentina" in html
+    assert "R$ 100,00" in html
+    assert "R$ 50,50" in html
 
 
 def test_stand_by_and_completed_trips_are_left_out(logado, categoria):
@@ -98,77 +94,13 @@ def test_stand_by_and_completed_trips_are_left_out(logado, categoria):
     assert "Nenhuma viagem em planejamento." in html
 
 
-def test_budget_remaining_is_shown_for_trips_with_a_budget(logado, categoria):
-    viagem = _viagem(orcamento=Decimal("1000.00"))
-    _despesa(viagem, categoria, "350.25")
+def test_page_has_no_budget_or_cancelable_sections(logado, categoria):
+    _despesa(_viagem(), categoria)
 
     html = _html(logado)
 
-    assert "R$ 1.000,00" in html
-    assert "R$ 649,75" in html
-
-
-def test_trip_over_budget_shows_how_much(logado, categoria):
-    viagem = _viagem(orcamento=Decimal("100.00"))
-    _despesa(viagem, categoria, "130.00")
-
-    assert "Estourado em R$ 30,00" in _html(logado)
-
-
-def test_trip_without_budget_shows_no_remaining_value(logado, categoria):
-    _despesa(_viagem(), categoria, "130.00")
-
-    assert "Estourado" not in _html(logado)
-
-
-def test_cancelable_costs_are_ordered_by_deadline_and_expired_ones_are_marked(logado, categoria):
-    hoje = timezone.localdate()
-    viagem = _viagem()
-    _despesa(
-        viagem,
-        categoria,
-        descricao="Hotel",
-        cancelavel=True,
-        data_limite_cancelamento=hoje + timedelta(days=30),
-    )
-    _despesa(
-        viagem,
-        categoria,
-        descricao="Voo",
-        cancelavel=True,
-        data_limite_cancelamento=hoje - timedelta(days=1),
-    )
-    _despesa(
-        viagem,
-        categoria,
-        descricao="Passeio",
-        cancelavel=True,
-        data_limite_cancelamento=hoje,
-    )
-
-    html = _html(logado)
-
-    assert html.index("Voo") < html.index("Passeio") < html.index("Hotel")
-    assert html.count("Vencido") == 1
-
-
-def test_only_cancelable_costs_of_trips_in_planning_are_listed(logado, categoria):
-    hoje = timezone.localdate()
-    _despesa(_viagem(), categoria, descricao="Seguro")
-    concluida = _viagem("Manaus", EstadoViagem.CONCLUIDA)
-    _despesa(
-        concluida,
-        categoria,
-        descricao="Barco",
-        cancelavel=True,
-        data_limite_cancelamento=hoje,
-    )
-
-    html = _html(logado)
-
-    assert "Seguro" not in html
-    assert "Barco" not in html
-    assert "Nenhum custo cancelável" in html
+    assert "Orçamento" not in html
+    assert "cancelável" not in html.lower()
 
 
 def test_navigation_links_to_the_planning_page(logado):

@@ -7,7 +7,7 @@
 
 <article>
   <p>Tem certeza de que deseja excluir <strong>{{ viagem.nome }}</strong>? Esta ação não pode ser desfeita.</p>
-  <p>Também serão apagados: {{ destinos }} destino(s), {{ atividades }} atividade(s) do roteiro e {{ despesas }} despesa(s).</p>
+  <p>Também serão apagados: {{ destinos }} destino(s), {{ atividades }} atividade(s) do roteiro e {{ despesas }} gasto(s).</p>
   <form method="post">
     {% csrf_token %}
     <div role="group">

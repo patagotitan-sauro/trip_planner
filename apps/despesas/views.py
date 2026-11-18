@@ -1,15 +1,17 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.db.models import F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.planejamento.totais import total_gasto
 from apps.viagens.cotacao import pediu_sugestao, sugerir_no_formulario
 from apps.viagens.models import Viagem
-from servicos.despesas import PLANEJADA, REALIZADA, total_em_brl, total_iof
-from servicos.planejamento import contadas_no_total
+from servicos.planejamento import nao_alocado_por_saldo
 
 from .forms import DespesaForm
-from .models import Despesa, SituacaoDespesa
+from .models import Despesa
 
 
 def _bloqueada_por_saldo(request: HttpRequest, despesa: Despesa) -> bool:
@@ -26,36 +28,28 @@ def lista(request: HttpRequest, viagem_pk: int) -> HttpResponse:
             F("data").asc(nulls_last=True), "id"
         )
     )
-    grupos = []
-    for situacao, titulo in ((PLANEJADA, "Custos planejados"), (REALIZADA, "Despesas realizadas")):
-        itens = [despesa for despesa in despesas if despesa.situacao == situacao]
-        contados = contadas_no_total(itens)
-        grupos.append(
-            {
-                "situacao": situacao,
-                "titulo": titulo,
-                "despesas": itens,
-                "total": total_em_brl(contados),
-                "iof": total_iof(contados),
-                "fora_do_total": len(itens) - len(contados),
-            }
-        )
-    return render(request, "despesas/lista.html", {"viagem": viagem, "grupos": grupos})
+    contexto = {
+        "viagem": viagem,
+        "despesas": despesas,
+        "total": total_gasto(viagem),
+        "nao_alocado": sum(nao_alocado_por_saldo(despesas).values(), Decimal(0)),
+    }
+    return render(request, "despesas/lista.html", contexto)
 
 
 def _formulario(
-    request: HttpRequest, viagem: Viagem, despesa: Despesa | None, titulo: str, initial=None
+    request: HttpRequest, viagem: Viagem, despesa: Despesa | None, titulo: str
 ) -> HttpResponse:
     if pediu_sugestao(request):
-        # An unchecked box is not posted, so it must not fall back to the saved value.
-        initial = {"cancelavel": False, **sugerir_no_formulario(request)}
-        dados = None
+        form = DespesaForm(
+            None, instance=despesa, viagem=viagem, initial=sugerir_no_formulario(request)
+        )
     else:
         dados = request.POST if request.method == "POST" else None
-    form = DespesaForm(dados, instance=despesa, viagem=viagem, initial=initial)
+        form = DespesaForm(dados, instance=despesa, viagem=viagem)
     if form.is_valid():
         form.save()
-        messages.success(request, "Despesa salva.")
+        messages.success(request, "Gasto salvo.")
         return redirect("despesas:lista", viagem_pk=viagem.pk)
     return render(
         request, "despesas/formulario.html", {"form": form, "viagem": viagem, "titulo": titulo}
@@ -64,10 +58,7 @@ def _formulario(
 
 def criar(request: HttpRequest, viagem_pk: int) -> HttpResponse:
     viagem = get_object_or_404(Viagem, pk=viagem_pk)
-    situacao = request.GET.get("situacao")
-    initial = {"situacao": situacao} if situacao in SituacaoDespesa.values else None
-    titulo = "Nova despesa" if situacao == SituacaoDespesa.REALIZADA else "Novo custo planejado"
-    return _formulario(request, viagem, None, titulo, initial)
+    return _formulario(request, viagem, None, "Novo gasto")
 
 
 def editar(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
@@ -76,7 +67,7 @@ def editar(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
     )
     if _bloqueada_por_saldo(request, despesa):
         return redirect("despesas:lista", viagem_pk=viagem_pk)
-    return _formulario(request, despesa.viagem, despesa, "Editar despesa")
+    return _formulario(request, despesa.viagem, despesa, "Editar gasto")
 
 
 def excluir(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
@@ -87,6 +78,6 @@ def excluir(request: HttpRequest, viagem_pk: int, pk: int) -> HttpResponse:
         return redirect("despesas:lista", viagem_pk=viagem_pk)
     if request.method == "POST":
         despesa.delete()
-        messages.success(request, "Despesa excluída.")
+        messages.success(request, "Gasto excluído.")
         return redirect("despesas:lista", viagem_pk=viagem_pk)
     return render(request, "despesas/excluir.html", {"despesa": despesa, "viagem": despesa.viagem})

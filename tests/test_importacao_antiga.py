@@ -37,16 +37,6 @@ def test_unknown_destination_is_rejected() -> None:
         importacao_antiga.destino_da_viagem("Lisboa")
 
 
-def test_expense_statuses_map_to_portuguese_situations() -> None:
-    assert importacao_antiga.situacao_da_despesa("actual") == "realizada"
-    assert importacao_antiga.situacao_da_despesa("planned") == "planejada"
-
-
-def test_unknown_expense_status_is_rejected() -> None:
-    with pytest.raises(ValueError, match="desconhecido"):
-        importacao_antiga.situacao_da_despesa("refunded")
-
-
 def test_home_currency_always_has_rate_one() -> None:
     assert importacao_antiga.taxa_da_despesa("BRL", "actual", None, None) == Decimal(1)
 
